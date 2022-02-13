@@ -62,7 +62,7 @@ extension Tilemap: Graph {
             Node(x: node.x + 1, y: node.y - 1),
             Node(x: node.x, y: node.y - 1),
         ].filter {
-            guard $0.x >= 0, $0.x < width, $0.y >= 0, $0.y < tiles.count / width else {
+            guard $0.x >= 0, $0.x < width, $0.y >= 0, $0.y < height else {
                 return false
             }
             return tile(at: $0).isPassable &&

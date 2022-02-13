@@ -19,11 +19,12 @@ class Unit {
         self.y = y
     }
 
-    func update(timeStep: Double) {
+    func update(timeStep: Double, in world: World) {
         if let next = path.first {
             let dx = Double(next.x) - x, dy = Double(next.y) - y
             let distance = (dx * dx + dy * dy).squareRoot()
             let step = timeStep * speed
+            let oldX = x, oldY = y
             if distance < step {
                 path.removeFirst()
                 x = Double(next.x)
@@ -31,6 +32,13 @@ class Unit {
             } else {
                 x += (dx / distance) * step
                 y += (dy / distance) * step
+            }
+            if !world.unit(self, canMoveTo: coord) {
+                if let unit = world.pickUnit(at: coord) {
+                    _ = world.moveUnitAside(unit)
+                }
+                x = oldX
+                y = oldY
             }
         }
     }
@@ -44,6 +52,7 @@ class World {
 
     init() {
         units.append(Unit(x: 5, y: 5))
+        units.append(Unit(x: 10, y: 10))
     }
 
     func pickUnit(at coord: TileCoord) -> Unit? {
@@ -64,10 +73,35 @@ class World {
         unit.path = (unit.path.first.map { [$0] } ?? []) + path
     }
 
+    func moveUnitAside(_ unit: Unit) -> Bool {
+        guard let target = map.nodesConnectedTo(unit.coord).first(where: {
+            self.unit(unit, canMoveTo: $0)
+        }) else {
+            return false
+        }
+        guard let current = unit.path.last else {
+            unit.path = [target]
+            return true
+        }
+        let path = map.findPath(
+            from: target,
+            to: current,
+            maxDistance: .infinity
+        )
+        unit.path = [target] + path
+        return true
+    }
+
+    func unit(_ unit: Unit, canMoveTo coord: TileCoord) -> Bool {
+        return map.tile(at: coord).isPassable && !units.contains(where: {
+            $0 !== unit && $0.coord == coord
+        })
+    }
+
     func update(timeStep: Double) {
         // Update units
         for unit in units {
-            unit.update(timeStep: timeStep)
+            unit.update(timeStep: timeStep, in: self)
         }
     }
 }
