@@ -47,35 +47,3 @@ struct Tilemap {
         return tiles[coord.y * width + coord.x]
     }
 }
-
-extension Tilemap: Graph {
-    typealias Node = TileCoord
-
-    func nodesConnectedTo(_ node: TileCoord) -> [TileCoord] {
-        return [
-            Node(x: node.x - 1, y: node.y - 1),
-            Node(x: node.x - 1, y: node.y),
-            Node(x: node.x - 1, y: node.y + 1),
-            Node(x: node.x, y: node.y + 1),
-            Node(x: node.x + 1, y: node.y + 1),
-            Node(x: node.x + 1, y: node.y),
-            Node(x: node.x + 1, y: node.y - 1),
-            Node(x: node.x, y: node.y - 1),
-        ].filter {
-            guard $0.x >= 0, $0.x < width, $0.y >= 0, $0.y < height else {
-                return false
-            }
-            return tile(at: $0).isPassable &&
-                tile(at: Node(x: $0.x, y: node.y)).isPassable &&
-                tile(at: Node(x: node.x, y: $0.y)).isPassable
-        }
-    }
-
-    func estimatedDistance(from a: Node, to b: Node) -> Double {
-        return abs(Double(b.x - a.x)) + abs(Double(b.y - a.y))
-    }
-
-    func stepDistance(from a: Node, to b: Node) -> Double {
-        return 1
-    }
-}

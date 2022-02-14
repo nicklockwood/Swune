@@ -15,6 +15,7 @@ class ViewController: UIViewController {
     private var displayLink: CADisplayLink?
     private var lastFrameTime = CACurrentMediaTime()
     private var scrollView = UIScrollView()
+    private var buildingViews = [UIView]()
     private var unitViews = [UIView]()
     private var world = World()
 
@@ -65,6 +66,18 @@ class ViewController: UIViewController {
 
     func loadWorld(_ world: World) {
         loadTilemap(world.map)
+        // Draw buildings
+        for building in world.buildings {
+            let buildingView = UIView(frame: CGRect(
+                x: tileSize.width * CGFloat(building.x),
+                y: tileSize.height * CGFloat(building.y),
+                width: tileSize.width * CGFloat(building.width),
+                height: tileSize.height * CGFloat(building.height)
+            ))
+            buildingViews.append(buildingView)
+            buildingView.backgroundColor = .cyan
+            scrollView.addSubview(buildingView)
+        }
         // Draw units
         for unit in world.units {
             let unitView = UIView(frame: CGRect(

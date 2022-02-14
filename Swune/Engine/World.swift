@@ -5,96 +5,23 @@
 //  Created by Nick Lockwood on 13/02/2022.
 //
 
-class Unit {
-    var x, y: Double
-    var speed: Double = 1
-    var path: [TileCoord] = []
-
-    var coord: TileCoord {
-        TileCoord(x: Int(x + 0.5), y: Int(y + 0.5))
-    }
-
-    init(x: Double, y: Double) {
-        self.x = x
-        self.y = y
-    }
-
-    func update(timeStep: Double, in world: World) {
-        if let next = path.first {
-            let dx = Double(next.x) - x, dy = Double(next.y) - y
-            let distance = (dx * dx + dy * dy).squareRoot()
-            let step = timeStep * speed
-            let oldX = x, oldY = y
-            if distance < step {
-                path.removeFirst()
-                x = Double(next.x)
-                y = Double(next.y)
-            } else {
-                x += (dx / distance) * step
-                y += (dy / distance) * step
-            }
-            if !world.unit(self, canMoveTo: coord) {
-                if let unit = world.pickUnit(at: coord) {
-                    _ = world.moveUnitAside(unit)
-                }
-                x = oldX
-                y = oldY
-            }
-        }
-    }
-}
-
 class World {
     var map: Tilemap = .init()
     private(set) var units: [Unit] = []
+    private(set) var buildings: [Building] = []
 
     var selectedUnit: Unit?
 
     init() {
         units.append(Unit(x: 5, y: 5))
         units.append(Unit(x: 10, y: 10))
+
+        buildings.append(Building(x: 9, y: 5))
     }
 
-    func pickUnit(at coord: TileCoord) -> Unit? {
-        for unit in units {
-            if unit.coord == coord {
-                return unit
-            }
-        }
-        return nil
-    }
-
-    func moveUnit(_ unit: Unit, to coord: TileCoord) {
-        let path = map.findPath(
-            from: unit.coord,
-            to: coord,
-            maxDistance: .infinity
-        )
-        unit.path = (unit.path.first.map { [$0] } ?? []) + path
-    }
-
-    func moveUnitAside(_ unit: Unit) -> Bool {
-        guard let target = map.nodesConnectedTo(unit.coord).first(where: {
-            self.unit(unit, canMoveTo: $0)
-        }) else {
-            return false
-        }
-        guard let current = unit.path.last else {
-            unit.path = [target]
-            return true
-        }
-        let path = map.findPath(
-            from: target,
-            to: current,
-            maxDistance: .infinity
-        )
-        unit.path = [target] + path
-        return true
-    }
-
-    func unit(_ unit: Unit, canMoveTo coord: TileCoord) -> Bool {
-        return map.tile(at: coord).isPassable && !units.contains(where: {
-            $0 !== unit && $0.coord == coord
+    func tileIsPassable(at coord: TileCoord) -> Bool {
+        map.tile(at: coord).isPassable && !buildings.contains(where: {
+            $0.contains(coord)
         })
     }
 
@@ -103,5 +30,37 @@ class World {
         for unit in units {
             unit.update(timeStep: timeStep, in: self)
         }
+    }
+}
+
+extension World: Graph {
+    typealias Node = TileCoord
+
+    func nodesConnectedTo(_ node: TileCoord) -> [TileCoord] {
+        return [
+            Node(x: node.x - 1, y: node.y - 1),
+            Node(x: node.x - 1, y: node.y),
+            Node(x: node.x - 1, y: node.y + 1),
+            Node(x: node.x, y: node.y + 1),
+            Node(x: node.x + 1, y: node.y + 1),
+            Node(x: node.x + 1, y: node.y),
+            Node(x: node.x + 1, y: node.y - 1),
+            Node(x: node.x, y: node.y - 1),
+        ].filter {
+            guard $0.x >= 0, $0.x < map.width, $0.y >= 0, $0.y < map.height else {
+                return false
+            }
+            return tileIsPassable(at: $0) &&
+                tileIsPassable(at: Node(x: $0.x, y: node.y)) &&
+                tileIsPassable(at: Node(x: node.x, y: $0.y))
+        }
+    }
+
+    func estimatedDistance(from a: Node, to b: Node) -> Double {
+        return abs(Double(b.x - a.x)) + abs(Double(b.y - a.y))
+    }
+
+    func stepDistance(from a: Node, to b: Node) -> Double {
+        return 1
     }
 }

@@ -16,6 +16,8 @@
 		017097F427B99352002ED344 /* Tilemap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097F327B99352002ED344 /* Tilemap.swift */; };
 		017097F627B9995C002ED344 /* World.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097F527B9995C002ED344 /* World.swift */; };
 		017097F927B9A0FF002ED344 /* Pathfinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097F827B9A0FF002ED344 /* Pathfinder.swift */; };
+		017097FC27B9D317002ED344 /* Unit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097FB27B9D317002ED344 /* Unit.swift */; };
+		017097FE27B9D508002ED344 /* Building.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097FD27B9D508002ED344 /* Building.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +32,8 @@
 		017097F327B99352002ED344 /* Tilemap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tilemap.swift; sourceTree = "<group>"; };
 		017097F527B9995C002ED344 /* World.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = World.swift; sourceTree = "<group>"; };
 		017097F827B9A0FF002ED344 /* Pathfinder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pathfinder.swift; sourceTree = "<group>"; };
+		017097FB27B9D317002ED344 /* Unit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Unit.swift; sourceTree = "<group>"; };
+		017097FD27B9D508002ED344 /* Building.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Building.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +84,8 @@
 				017097F327B99352002ED344 /* Tilemap.swift */,
 				017097F827B9A0FF002ED344 /* Pathfinder.swift */,
 				017097F527B9995C002ED344 /* World.swift */,
+				017097FB27B9D317002ED344 /* Unit.swift */,
+				017097FD27B9D508002ED344 /* Building.swift */,
 			);
 			path = Engine;
 			sourceTree = "<group>";
@@ -158,9 +164,11 @@
 				017097F427B99352002ED344 /* Tilemap.swift in Sources */,
 				017097E427B9932C002ED344 /* ViewController.swift in Sources */,
 				017097E027B9932C002ED344 /* AppDelegate.swift in Sources */,
+				017097FC27B9D317002ED344 /* Unit.swift in Sources */,
 				017097E227B9932C002ED344 /* SceneDelegate.swift in Sources */,
 				017097F927B9A0FF002ED344 /* Pathfinder.swift in Sources */,
 				017097F627B9995C002ED344 /* World.swift in Sources */,
+				017097FE27B9D508002ED344 /* Building.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
