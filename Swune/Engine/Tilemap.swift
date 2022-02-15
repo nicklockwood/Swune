@@ -11,39 +11,33 @@ struct TileCoord: Hashable {
     var x, y: Int
 }
 
-struct Tile {
-    var color: UIColor
+enum Tile: Character, Codable {
+    case sand = " "
+    case stone = "1"
+    case spice = "2"
+    case boulder = "3"
 
     var isPassable: Bool {
-        return color !== UIColor.white
-    }
-
-    init() {
-        color = UIColor(
-            hue: .random(in: 0 ... 1),
-            saturation: 0.1,
-            brightness: 0.5,
-            alpha: 1
-        )
-        if Int.random(in: 0 ..< 10) > 8 {
-            color = .white
-        }
+        return self != .boulder
     }
 }
 
-struct Tilemap {
+struct Tilemap: Codable {
     private(set) var width, height: Int
     private var tiles: [Tile] = []
 
-    init() {
-        width = 64
-        height = 64
-        for _ in 0 ..< width * height {
-            tiles.append(Tile())
-        }
+    init(level: Level) {
+        // Set tiles
+        let rows = level.tiles
+        height = rows.count
+        width = rows.reduce(.max) { min($0, $1.count) }
+        tiles = rows.flatMap { $0.map {
+            Tile(rawValue: $0) ?? .sand
+        }}
     }
 
     func tile(at coord: TileCoord) -> Tile {
         return tiles[coord.y * width + coord.x]
     }
 }
+

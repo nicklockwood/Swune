@@ -6,15 +6,16 @@
 //
 
 class World {
-    var map: Tilemap = .init()
+    var map: Tilemap
     var elapsedTime: Double = 0
     private(set) var units: [Unit] = []
     private(set) var buildings: [Building] = []
     var projectiles: [Projectile] = []
-
     var selectedUnit: Unit?
 
-    init() {
+    init(level: Level) {
+        map = Tilemap(level: level)
+
         for _ in 0 ..< 10 {
             let coord = TileCoord(x: .random(in: 0 ..< map.width),
                                   y: .random(in: 0 ..< map.height))

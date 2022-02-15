@@ -7,7 +7,7 @@
 
 import UIKit
 
-private let tileSize = CGSize(width: 32, height: 32)
+private let tileSize = CGSize(width: 48, height: 48)
 private let maximumTimeStep: Double = 1 / 20
 private let worldTimeStep: Double = 1 / 120
 
@@ -20,7 +20,16 @@ class ViewController: UIViewController {
     private var buildingViews = [UIView]()
     private var unitViews = [UIView]()
     private var projectileViews = [UIView]()
-    private var world = World()
+    private var world: World = {
+        let url = Bundle.main.url(
+            forResource: "Level1",
+            withExtension: "json",
+            subdirectory: "Levels"
+        )!
+        let data = try! Data(contentsOf: url)
+        let level = try! JSONDecoder().decode(Level.self, from: data)
+        return World(level: level)
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -180,6 +189,17 @@ extension ViewController: UIScrollViewDelegate {
 //    func scrollViewDidScroll(_ scrollView: UIScrollView) {
 //        updateTileViews
 //    }
+}
+
+extension Tile {
+    var color: UIColor {
+        switch self {
+        case .sand: return .yellow
+        case .stone: return .gray
+        case .spice: return .orange
+        case .boulder: return .brown
+        }
+    }
 }
 
 extension Unit {

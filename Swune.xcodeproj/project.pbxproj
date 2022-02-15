@@ -19,6 +19,8 @@
 		017097FC27B9D317002ED344 /* Unit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097FB27B9D317002ED344 /* Unit.swift */; };
 		017097FE27B9D508002ED344 /* Building.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097FD27B9D508002ED344 /* Building.swift */; };
 		0170980027BC30AB002ED344 /* Projectile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097FF27BC30AB002ED344 /* Projectile.swift */; };
+		0170980427BC613B002ED344 /* Level.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0170980327BC613B002ED344 /* Level.swift */; };
+		0170980627BC622F002ED344 /* Levels in Resources */ = {isa = PBXBuildFile; fileRef = 0170980527BC622F002ED344 /* Levels */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +38,8 @@
 		017097FB27B9D317002ED344 /* Unit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Unit.swift; sourceTree = "<group>"; };
 		017097FD27B9D508002ED344 /* Building.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Building.swift; sourceTree = "<group>"; };
 		017097FF27BC30AB002ED344 /* Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Projectile.swift; sourceTree = "<group>"; };
+		0170980327BC613B002ED344 /* Level.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Level.swift; sourceTree = "<group>"; };
+		0170980527BC622F002ED344 /* Levels */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Levels; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +72,7 @@
 		017097DE27B9932C002ED344 /* Swune */ = {
 			isa = PBXGroup;
 			children = (
+				0170980527BC622F002ED344 /* Levels */,
 				017097F727B9A0DE002ED344 /* Engine */,
 				017097DF27B9932C002ED344 /* AppDelegate.swift */,
 				017097E127B9932C002ED344 /* SceneDelegate.swift */,
@@ -83,6 +88,7 @@
 		017097F727B9A0DE002ED344 /* Engine */ = {
 			isa = PBXGroup;
 			children = (
+				0170980327BC613B002ED344 /* Level.swift */,
 				017097F327B99352002ED344 /* Tilemap.swift */,
 				017097F827B9A0FF002ED344 /* Pathfinder.swift */,
 				017097F527B9995C002ED344 /* World.swift */,
@@ -152,6 +158,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				017097EC27B9932E002ED344 /* LaunchScreen.storyboard in Resources */,
+				0170980627BC622F002ED344 /* Levels in Resources */,
 				017097E927B9932E002ED344 /* Assets.xcassets in Resources */,
 				017097E727B9932C002ED344 /* Main.storyboard in Resources */,
 			);
@@ -172,6 +179,7 @@
 				017097F927B9A0FF002ED344 /* Pathfinder.swift in Sources */,
 				0170980027BC30AB002ED344 /* Projectile.swift in Sources */,
 				017097F627B9995C002ED344 /* World.swift in Sources */,
+				0170980427BC613B002ED344 /* Level.swift in Sources */,
 				017097FE27B9D508002ED344 /* Building.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
