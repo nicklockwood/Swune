@@ -13,8 +13,11 @@ class World {
     var selectedUnit: Unit?
 
     init() {
-        units.append(Unit(x: 5, y: 5))
-        units.append(Unit(x: 10, y: 10))
+        for _ in 0 ..< 10 {
+            let coord = TileCoord(x: .random(in: 0 ..< map.width),
+                                  y: .random(in: 0 ..< map.height))
+            units.append(Unit(x: Double(coord.x), y: Double(coord.y)))
+        }
 
         buildings.append(Building(x: 9, y: 5))
     }

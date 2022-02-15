@@ -7,7 +7,7 @@
 
 class Unit {
     var x, y: Double
-    var speed: Double = 1
+    var speed: Double = 2
     var path: [TileCoord] = []
 
     var coord: TileCoord {
@@ -21,10 +21,17 @@ class Unit {
 
     func update(timeStep: Double, in world: World) {
         if let next = path.first {
+            guard world.unit(self, canMoveTo: next) else {
+                if let unit = world.pickUnit(at: next), world.moveUnitAside(unit) {
+                    return
+                } else if !world.moveUnitAside(self) {
+                    path = []
+                }
+                return
+            }
             let dx = Double(next.x) - x, dy = Double(next.y) - y
             let distance = (dx * dx + dy * dy).squareRoot()
             let step = timeStep * speed
-            let oldX = x, oldY = y
             if distance < step {
                 path.removeFirst()
                 x = Double(next.x)
@@ -33,13 +40,10 @@ class Unit {
                 x += (dx / distance) * step
                 y += (dy / distance) * step
             }
-            if !world.unit(self, canMoveTo: coord) {
-                if let unit = world.pickUnit(at: coord) {
-                    _ = world.moveUnitAside(unit)
-                }
-                x = oldX
-                y = oldY
-            }
+
+        } else if !world.tileIsPassable(at: coord) {
+            _ = world.moveUnitAside(self)
+            return
         }
     }
 }
@@ -64,8 +68,10 @@ extension World {
     }
 
     func moveUnitAside(_ unit: Unit) -> Bool {
-        guard let target = nodesConnectedTo(unit.coord).first(where: {
-            self.unit(unit, canMoveTo: $0)
+        guard let target = nodesConnectedTo(unit.coord).first(where: { node in
+            self.unit(unit, canMoveTo: node) && !units.contains(where: {
+                $0 !== unit && ($0.path.first == node || $0.path.last == node)
+            })
         }) else {
             return false
         }
@@ -78,6 +84,9 @@ extension World {
             to: current,
             maxDistance: .infinity
         )
+        guard !path.isEmpty else {
+            return false
+        }
         unit.path = [target] + path
         return true
     }
