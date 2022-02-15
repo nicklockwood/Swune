@@ -7,8 +7,10 @@
 
 class World {
     var map: Tilemap = .init()
+    var elapsedTime: Double = 0
     private(set) var units: [Unit] = []
     private(set) var buildings: [Building] = []
+    var projectiles: [Projectile] = []
 
     var selectedUnit: Unit?
 
@@ -16,7 +18,9 @@ class World {
         for _ in 0 ..< 10 {
             let coord = TileCoord(x: .random(in: 0 ..< map.width),
                                   y: .random(in: 0 ..< map.height))
-            units.append(Unit(x: Double(coord.x), y: Double(coord.y)))
+            let unit = Unit(x: Double(coord.x), y: Double(coord.y))
+            unit.team = .random(in: 1 ... 2)
+            units.append(unit)
         }
 
         buildings.append(Building(x: 9, y: 5))
@@ -29,9 +33,14 @@ class World {
     }
 
     func update(timeStep: Double) {
+        elapsedTime += timeStep
         // Update units
         for unit in units {
             unit.update(timeStep: timeStep, in: self)
+        }
+        // Update projectiles
+        for projectile in projectiles {
+            projectile.update(timeStep: timeStep, in: self)
         }
     }
 }

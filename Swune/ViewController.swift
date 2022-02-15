@@ -11,12 +11,15 @@ private let tileSize = CGSize(width: 32, height: 32)
 private let maximumTimeStep: Double = 1 / 20
 private let worldTimeStep: Double = 1 / 120
 
+let playerTeam = 1
+
 class ViewController: UIViewController {
     private var displayLink: CADisplayLink?
     private var lastFrameTime = CACurrentMediaTime()
     private var scrollView = UIScrollView()
     private var buildingViews = [UIView]()
     private var unitViews = [UIView]()
+    private var projectileViews = [UIView]()
     private var world = World()
 
     override func viewDidLoad() {
@@ -87,7 +90,7 @@ class ViewController: UIViewController {
                 height: tileSize.height
             ))
             unitViews.append(unitView)
-            unitView.backgroundColor = .red
+            unitView.backgroundColor = unit.teamColor
             scrollView.addSubview(unitView)
         }
     }
@@ -111,8 +114,32 @@ class ViewController: UIViewController {
                 x: tileSize.width * CGFloat(unit.x),
                 y: tileSize.height * CGFloat(unit.y)
             )
-            view.backgroundColor =
-                (world.selectedUnit === unit) ? .green : .red
+            view.backgroundColor = unit.health <= 0 ? .black :
+                (world.selectedUnit === unit) ?
+                    unit.selectedColor : unit.teamColor
+        }
+
+        // Draw projectiles
+        for (i, projectile) in world.projectiles.enumerated() {
+            let projectileView: UIView
+            if i >= projectileViews.count {
+                projectileView = UIView(frame: .zero)
+                projectileView.backgroundColor = .yellow
+                projectileViews.append(projectileView)
+                scrollView.addSubview(projectileView)
+            } else {
+                projectileView = projectileViews[i]
+            }
+            projectileView.frame = CGRect(
+                x: tileSize.width * CGFloat(projectile.x),
+                y: tileSize.height * CGFloat(projectile.y),
+                width: tileSize.width,
+                height: tileSize.height
+            )
+        }
+        while projectileViews.count > world.projectiles.count {
+            projectileViews.last?.removeFromSuperview()
+            projectileViews.removeLast()
         }
     }
 
@@ -127,10 +154,19 @@ class ViewController: UIViewController {
         let location = gesture.location(in: scrollView)
         let coord = tileCoordinate(at: location)
         if let unit = world.pickUnit(at: coord) {
-            world.selectedUnit = unit
+            if let current = world.selectedUnit,
+               current.team == playerTeam,
+               unit.team != playerTeam
+            {
+                world.moveUnit(current, to: unit.coord)
+                current.target = unit
+            } else {
+                world.selectedUnit = unit
+            }
             updateViews()
-        } else if let unit = world.selectedUnit {
+        } else if let unit = world.selectedUnit, unit.team == playerTeam {
             world.moveUnit(unit, to: coord)
+            unit.target = nil
         }
     }
 
@@ -144,5 +180,15 @@ extension ViewController: UIScrollViewDelegate {
 //    func scrollViewDidScroll(_ scrollView: UIScrollView) {
 //        updateTileViews
 //    }
+}
+
+extension Unit {
+    var teamColor: UIColor {
+        team == 1 ? .blue : .red
+    }
+
+    var selectedColor: UIColor {
+        team == 1 ? .cyan : .orange
+    }
 }
 
