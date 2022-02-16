@@ -18,7 +18,7 @@ class ViewController: UIViewController {
     private var lastFrameTime = CACurrentMediaTime()
     private var scrollView = UIScrollView()
     private var buildingViews = [UIView]()
-    private var unitViews = [UIView]()
+    private var unitViews = [UIImageView]()
     private var projectileViews = [UIView]()
     private var world: World = {
         let url = Bundle.main.url(
@@ -63,14 +63,18 @@ class ViewController: UIViewController {
         // Draw map
         for y in 0 ..< tilemap.height {
             for x in 0 ..< tilemap.width {
-                let tileView = UIView(frame: CGRect(
+                let tileView = UIImageView(frame: CGRect(
                     x: tileSize.width * CGFloat(x),
                     y: tileSize.height * CGFloat(y),
                     width: tileSize.width,
                     height: tileSize.height
                 ))
                 let coord = TileCoord(x: x, y: y)
-                tileView.backgroundColor = tilemap.tile(at: coord).color
+                let tile = tilemap.tile(at: coord)
+                tileView.backgroundColor = tile.color
+                tileView.image = tile.image
+                tileView.contentMode = .scaleToFill
+                tileView.layer.magnificationFilter = .nearest
                 scrollView.addSubview(tileView)
             }
         }
@@ -92,14 +96,15 @@ class ViewController: UIViewController {
         }
         // Draw units
         for unit in world.units {
-            let unitView = UIView(frame: CGRect(
+            let unitView = UIImageView(frame: CGRect(
                 x: tileSize.width * CGFloat(unit.x),
                 y: tileSize.height * CGFloat(unit.y),
                 width: tileSize.width,
                 height: tileSize.height
             ))
+            unitView.contentMode = .scaleToFill
+            unitView.layer.magnificationFilter = .nearest
             unitViews.append(unitView)
-            unitView.backgroundColor = unit.teamColor
             scrollView.addSubview(unitView)
         }
     }
@@ -123,9 +128,9 @@ class ViewController: UIViewController {
                 x: tileSize.width * CGFloat(unit.x),
                 y: tileSize.height * CGFloat(unit.y)
             )
+            view.image = UIImage(named: unit.imageName)
             view.backgroundColor = unit.health <= 0 ? .black :
-                (world.selectedUnit === unit) ?
-                    unit.selectedColor : unit.teamColor
+                (world.selectedUnit === unit) ? unit.selectedColor : .clear
         }
 
         // Draw projectiles
@@ -200,13 +205,22 @@ extension Tile {
         case .boulder: return .brown
         }
     }
+
+    var imageName: String {
+        switch self {
+        case .sand: return "sand"
+        case .stone: return "stone"
+        case .spice: return "heavy-spice"
+        case .boulder: return ""
+        }
+    }
+
+    var image: UIImage? {
+        .init(named: imageName)
+    }
 }
 
 extension Unit {
-    var teamColor: UIColor {
-        team == 1 ? .blue : .red
-    }
-
     var selectedColor: UIColor {
         team == 1 ? .cyan : .orange
     }

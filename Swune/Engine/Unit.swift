@@ -7,10 +7,55 @@
 
 import Foundation
 
+struct Angle: Hashable {
+    var radians: Double {
+        didSet { normalize() }
+    }
+
+    static let zero = Angle(radians: 0)
+
+    init(radians: Double) {
+        self.radians = radians
+    }
+
+    init?(x: Double, y: Double) {
+        guard x != 0 || y != 0 else {
+            return nil
+        }
+        radians = atan2(x, -y)
+        normalize()
+    }
+
+    private mutating func normalize() {
+        while radians < 0 {
+            radians += .pi * 2
+        }
+        while radians > .pi * 2 {
+            radians -= .pi * 2
+        }
+    }
+
+    var directionSuffix: String {
+        let pi8 = Double.pi / 8
+        switch radians {
+        case pi8 ..< pi8 * 3: return "ne"
+        case pi8 * 3 ..< pi8 * 5: return "e"
+        case pi8 * 5 ..< pi8 * 7: return "se"
+        case pi8 * 7 ..< pi8 * 9: return "s"
+        case pi8 * 9 ..< pi8 * 11: return "sw"
+        case pi8 * 11 ..< pi8 * 13: return "w"
+        case pi8 * 13 ..< pi8 * 15: return "nw"
+        default: return "n"
+        }
+    }
+}
+
 class Unit {
     var x, y: Double
+    var angle: Angle = .zero
     var team: Int = 1
     var speed: Double = 2
+    var rotationSpeed: Double = 1
     var range: Double = 3
     var health: Double = 1
     var attackCooldown: Double = 1
@@ -20,6 +65,11 @@ class Unit {
 
     var coord: TileCoord {
         TileCoord(x: Int(x + 0.5), y: Int(y + 0.5))
+    }
+
+    var imageName: String {
+        let teamSuffix = team == 1 ? "blue" : "red"
+        return "harvester-\(teamSuffix)-\(angle.directionSuffix)"
     }
 
     init(x: Double, y: Double) {
@@ -69,7 +119,26 @@ class Unit {
                 }
                 return
             }
+
             let dx = Double(next.x) - x, dy = Double(next.y) - y
+            if let direction = Angle(x: dx, y: dy) {
+                var da = direction.radians - angle.radians
+                if da > .pi {
+                    da -= .pi * 2
+                } else if da < -.pi {
+                    da += .pi * 2
+                }
+                guard abs(da) < 0.001 else {
+                    let astep = timeStep * rotationSpeed * 2 * .pi
+                    if abs(da) < astep {
+                        angle = direction
+                    } else {
+                        angle.radians += astep * (da < 0 ? -1 : 1)
+                    }
+                    return
+                }
+            }
+
             let distance = (dx * dx + dy * dy).squareRoot()
             let step = timeStep * speed
             if distance < step {
