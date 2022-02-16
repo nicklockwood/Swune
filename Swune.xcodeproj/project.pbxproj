@@ -22,6 +22,7 @@
 		0170980427BC613B002ED344 /* Level.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0170980327BC613B002ED344 /* Level.swift */; };
 		0170980627BC622F002ED344 /* Levels in Resources */ = {isa = PBXBuildFile; fileRef = 0170980527BC622F002ED344 /* Levels */; };
 		0170980827BD876C002ED344 /* Animation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0170980727BD876C002ED344 /* Animation.swift */; };
+		0170980C27BDA714002ED344 /* Angle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0170980B27BDA714002ED344 /* Angle.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +43,7 @@
 		0170980327BC613B002ED344 /* Level.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Level.swift; sourceTree = "<group>"; };
 		0170980527BC622F002ED344 /* Levels */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Levels; sourceTree = "<group>"; };
 		0170980727BD876C002ED344 /* Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animation.swift; sourceTree = "<group>"; };
+		0170980B27BDA714002ED344 /* Angle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Angle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +92,7 @@
 		017097F727B9A0DE002ED344 /* Engine */ = {
 			isa = PBXGroup;
 			children = (
+				0170980B27BDA714002ED344 /* Angle.swift */,
 				0170980327BC613B002ED344 /* Level.swift */,
 				017097F327B99352002ED344 /* Tilemap.swift */,
 				017097F827B9A0FF002ED344 /* Pathfinder.swift */,
@@ -181,6 +184,7 @@
 				017097FC27B9D317002ED344 /* Unit.swift in Sources */,
 				017097E227B9932C002ED344 /* SceneDelegate.swift in Sources */,
 				017097F927B9A0FF002ED344 /* Pathfinder.swift in Sources */,
+				0170980C27BDA714002ED344 /* Angle.swift in Sources */,
 				0170980027BC30AB002ED344 /* Projectile.swift in Sources */,
 				017097F627B9995C002ED344 /* World.swift in Sources */,
 				0170980427BC613B002ED344 /* Level.swift in Sources */,

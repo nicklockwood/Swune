@@ -30,6 +30,7 @@ class ViewController: UIViewController {
     private var buildingViews = [UIView]()
     private var unitViews = [UIImageView]()
     private var projectileViews = [UIView]()
+    private var selectionView = UIImageView()
     private var world: World = .init(
         level: loadJSON("Level1"),
         unitTypes: loadJSON("Units")
@@ -111,6 +112,23 @@ class ViewController: UIViewController {
             unitViews.append(unitView)
             scrollView.addSubview(unitView)
         }
+        // Draw reticle
+        if let reticleImage = UIImage(named: "reticle") {
+            let scale = tileSize.width / reticleImage.size.width
+            selectionView.transform = CGAffineTransform(scaleX: scale, y: scale)
+            selectionView.image = reticleImage.stretchableImage(
+                withLeftCapWidth: Int(reticleImage.size.width / 2),
+                topCapHeight: Int(reticleImage.size.height / 2)
+            )
+        }
+        selectionView.contentMode = .scaleToFill
+        selectionView.layer.magnificationFilter = .nearest
+        selectionView.frame.size = CGSize(
+            width: tileSize.width + 8,
+            height: tileSize.height + 8
+        )
+        selectionView.isHidden = true
+        scrollView.addSubview(selectionView)
     }
 
     @objc func update(_ displayLink: CADisplayLink) {
@@ -126,6 +144,7 @@ class ViewController: UIViewController {
     }
 
     func updateViews() {
+        // Draw units
         for (i, unit) in world.units.enumerated() {
             let view = unitViews[i]
             view.frame.origin = CGPoint(
@@ -133,8 +152,7 @@ class ViewController: UIViewController {
                 y: tileSize.height * CGFloat(unit.y)
             )
             view.image = UIImage(named: unit.imageName)
-            view.backgroundColor = unit.health <= 0 ? .black :
-                (world.selectedUnit === unit) ? unit.selectedColor : .clear
+            view.backgroundColor = unit.health <= 0 ? .black : .clear
         }
 
         // Draw projectiles
@@ -158,6 +176,17 @@ class ViewController: UIViewController {
         while projectileViews.count > world.projectiles.count {
             projectileViews.last?.removeFromSuperview()
             projectileViews.removeLast()
+        }
+
+        // Draw reticle
+        if let unit = world.selectedUnit {
+            selectionView.center = CGPoint(
+                x: CGFloat(unit.x + 0.5) * tileSize.width,
+                y: CGFloat(unit.y + 0.5) * tileSize.width
+            )
+            selectionView.isHidden = false
+        } else {
+            selectionView.isHidden = true
         }
     }
 
@@ -223,10 +252,3 @@ extension Tile {
         .init(named: imageName)
     }
 }
-
-extension Unit {
-    var selectedColor: UIColor {
-        team == 1 ? .cyan : .orange
-    }
-}
-

@@ -17,35 +17,6 @@ struct UnitType: Decodable {
     var idle: Animation
 }
 
-struct Angle: Hashable {
-    var radians: Double {
-        didSet { normalize() }
-    }
-
-    static let zero = Angle(radians: 0)
-
-    init(radians: Double) {
-        self.radians = radians
-    }
-
-    init?(x: Double, y: Double) {
-        guard x != 0 || y != 0 else {
-            return nil
-        }
-        radians = atan2(x, -y)
-        normalize()
-    }
-
-    private mutating func normalize() {
-        while radians < 0 {
-            radians += .pi * 2
-        }
-        while radians > .pi * 2 {
-            radians -= .pi * 2
-        }
-    }
-}
-
 class Unit {
     var type: UnitType
     var x, y: Double
