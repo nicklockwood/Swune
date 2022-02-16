@@ -7,6 +7,16 @@
 
 import Foundation
 
+struct UnitType: Decodable {
+    var speed: Double
+    var turnSpeed: Double
+//    var range: Double = 3
+//    var health: Double = 1
+//    var attackCooldown: Double = 1
+
+    var idle: Animation
+}
+
 struct Angle: Hashable {
     var radians: Double {
         didSet { normalize() }
@@ -34,28 +44,13 @@ struct Angle: Hashable {
             radians -= .pi * 2
         }
     }
-
-    var directionSuffix: String {
-        let pi8 = Double.pi / 8
-        switch radians {
-        case pi8 ..< pi8 * 3: return "ne"
-        case pi8 * 3 ..< pi8 * 5: return "e"
-        case pi8 * 5 ..< pi8 * 7: return "se"
-        case pi8 * 7 ..< pi8 * 9: return "s"
-        case pi8 * 9 ..< pi8 * 11: return "sw"
-        case pi8 * 11 ..< pi8 * 13: return "w"
-        case pi8 * 13 ..< pi8 * 15: return "nw"
-        default: return "n"
-        }
-    }
 }
 
 class Unit {
+    var type: UnitType
     var x, y: Double
     var angle: Angle = .zero
     var team: Int = 1
-    var speed: Double = 2
-    var rotationSpeed: Double = 1
     var range: Double = 3
     var health: Double = 1
     var attackCooldown: Double = 1
@@ -68,13 +63,13 @@ class Unit {
     }
 
     var imageName: String {
-        let teamSuffix = team == 1 ? "blue" : "red"
-        return "harvester-\(teamSuffix)-\(angle.directionSuffix)"
+        type.idle.frame(angle: angle, time: 0)
     }
 
-    init(x: Double, y: Double) {
-        self.x = x
-        self.y = y
+    init(type: UnitType, coord: TileCoord) {
+        self.type = type
+        self.x = Double(coord.x)
+        self.y = Double(coord.y)
     }
 
     func distance(from coord: TileCoord) -> Double {
@@ -129,7 +124,7 @@ class Unit {
                     da += .pi * 2
                 }
                 guard abs(da) < 0.001 else {
-                    let astep = timeStep * rotationSpeed * 2 * .pi
+                    let astep = timeStep * type.turnSpeed * 2 * .pi
                     if abs(da) < astep {
                         angle = direction
                     } else {
@@ -140,7 +135,7 @@ class Unit {
             }
 
             let distance = (dx * dx + dy * dy).squareRoot()
-            let step = timeStep * speed
+            let step = timeStep * type.speed
             if distance < step {
                 path.removeFirst()
                 x = Double(next.x)

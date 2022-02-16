@@ -1,0 +1,36 @@
+{
+    "blue-harvester": {
+        "speed": 1,
+        "turnSpeed": 1,
+        "idle": {
+            "duration": 0,
+            "framesByAngle": [
+                ["harvester-blue-n"],
+                ["harvester-blue-ne"],
+                ["harvester-blue-e"],
+                ["harvester-blue-se"],
+                ["harvester-blue-s"],
+                ["harvester-blue-sw"],
+                ["harvester-blue-w"],
+                ["harvester-blue-nw"]
+            ]
+        }
+    },
+    "red-harvester": {
+        "speed": 1,
+        "turnSpeed": 1,
+        "idle": {
+            "duration": 0,
+            "framesByAngle": [
+                ["harvester-red-n"],
+                ["harvester-red-ne"],
+                ["harvester-red-e"],
+                ["harvester-red-se"],
+                ["harvester-red-s"],
+                ["harvester-red-sw"],
+                ["harvester-red-w"],
+                ["harvester-red-nw"]
+            ]
+        }
+    }
+}

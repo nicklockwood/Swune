@@ -5,6 +5,8 @@
 //  Created by Nick Lockwood on 13/02/2022.
 //
 
+typealias UnitTypes = [String: UnitType]
+
 class World {
     var map: Tilemap
     var elapsedTime: Double = 0
@@ -13,15 +15,17 @@ class World {
     var projectiles: [Projectile] = []
     var selectedUnit: Unit?
 
-    init(level: Level) {
+    init(level: Level, unitTypes: UnitTypes) {
         map = Tilemap(level: level)
-
-        for _ in 0 ..< 10 {
-            let coord = TileCoord(x: .random(in: 0 ..< map.width),
-                                  y: .random(in: 0 ..< map.height))
-            let unit = Unit(x: Double(coord.x), y: Double(coord.y))
-            unit.team = .random(in: 1 ... 2)
-            units.append(unit)
+        units = level.units.compactMap {
+            guard let type = unitTypes[$0.type] else {
+                assertionFailure()
+                return nil
+            }
+            let coord = TileCoord(x: $0.x, y: $0.y)
+            let unit = Unit(type: type, coord: coord)
+            unit.team = $0.team
+            return unit
         }
 
         buildings.append(Building(x: 9, y: 5))

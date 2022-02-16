@@ -8,5 +8,13 @@
 import Foundation
 
 struct Level: Codable {
+    struct Unit: Codable {
+        var type: String
+        var team: Int
+        var x: Int
+        var y: Int
+    }
+
     var tiles: [String]
+    var units: [Unit]
 }

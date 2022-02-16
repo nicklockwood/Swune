@@ -13,6 +13,16 @@ private let worldTimeStep: Double = 1 / 120
 
 let playerTeam = 1
 
+func loadJSON<T: Decodable>(_ name: String) -> T {
+    let url = Bundle.main.url(
+        forResource: name,
+        withExtension: "json",
+        subdirectory: "Levels"
+    )!
+    let data = try! Data(contentsOf: url)
+    return try! JSONDecoder().decode(T.self, from: data)
+}
+
 class ViewController: UIViewController {
     private var displayLink: CADisplayLink?
     private var lastFrameTime = CACurrentMediaTime()
@@ -20,16 +30,10 @@ class ViewController: UIViewController {
     private var buildingViews = [UIView]()
     private var unitViews = [UIImageView]()
     private var projectileViews = [UIView]()
-    private var world: World = {
-        let url = Bundle.main.url(
-            forResource: "Level1",
-            withExtension: "json",
-            subdirectory: "Levels"
-        )!
-        let data = try! Data(contentsOf: url)
-        let level = try! JSONDecoder().decode(Level.self, from: data)
-        return World(level: level)
-    }()
+    private var world: World = .init(
+        level: loadJSON("Level1"),
+        unitTypes: loadJSON("Units")
+    )
 
     override func viewDidLoad() {
         super.viewDidLoad()

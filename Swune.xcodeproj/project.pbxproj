@@ -21,6 +21,7 @@
 		0170980027BC30AB002ED344 /* Projectile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097FF27BC30AB002ED344 /* Projectile.swift */; };
 		0170980427BC613B002ED344 /* Level.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0170980327BC613B002ED344 /* Level.swift */; };
 		0170980627BC622F002ED344 /* Levels in Resources */ = {isa = PBXBuildFile; fileRef = 0170980527BC622F002ED344 /* Levels */; };
+		0170980827BD876C002ED344 /* Animation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0170980727BD876C002ED344 /* Animation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@
 		017097FF27BC30AB002ED344 /* Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Projectile.swift; sourceTree = "<group>"; };
 		0170980327BC613B002ED344 /* Level.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Level.swift; sourceTree = "<group>"; };
 		0170980527BC622F002ED344 /* Levels */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Levels; sourceTree = "<group>"; };
+		0170980727BD876C002ED344 /* Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +96,7 @@
 				017097F527B9995C002ED344 /* World.swift */,
 				017097FF27BC30AB002ED344 /* Projectile.swift */,
 				017097FB27B9D317002ED344 /* Unit.swift */,
+				0170980727BD876C002ED344 /* Animation.swift */,
 				017097FD27B9D508002ED344 /* Building.swift */,
 			);
 			path = Engine;
@@ -171,6 +174,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0170980827BD876C002ED344 /* Animation.swift in Sources */,
 				017097F427B99352002ED344 /* Tilemap.swift in Sources */,
 				017097E427B9932C002ED344 /* ViewController.swift in Sources */,
 				017097E027B9932C002ED344 /* AppDelegate.swift in Sources */,

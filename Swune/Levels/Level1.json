@@ -34,6 +34,23 @@
         "                                "
     ],
     "units": [
-        
+        {
+            "type": "red-harvester",
+            "team": 2,
+            "x": 10,
+            "y": 7
+        },
+        {
+            "type": "red-harvester",
+            "team": 2,
+            "x": 15,
+            "y": 23
+        },
+        {
+            "type": "blue-harvester",
+            "team": 1,
+            "x": 30,
+            "y": 16
+        },
     ]
 }
