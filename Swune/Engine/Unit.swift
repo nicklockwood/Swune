@@ -17,7 +17,7 @@ struct UnitType: Decodable {
     var idle: Animation
 }
 
-class Unit {
+class Unit: Entity {
     var type: UnitType
     var x, y: Double
     var angle: Angle = .zero
@@ -31,6 +31,10 @@ class Unit {
 
     var coord: TileCoord {
         TileCoord(x: Int(x + 0.5), y: Int(y + 0.5))
+    }
+
+    var bounds: Bounds {
+        .init(x: x, y: y, width: 1, height: 1)
     }
 
     var imageName: String {
@@ -50,7 +54,7 @@ class Unit {
 
     func update(timeStep: Double, in world: World) {
         if health <= 0 {
-            // Dead
+            world.removeUnit(self)
             return
         }
         if let target = target {
@@ -125,10 +129,8 @@ class Unit {
 
 extension World {
     func pickUnit(at coord: TileCoord) -> Unit? {
-        for unit in units {
-            if unit.coord == coord {
-                return unit
-            }
+        for unit in units where unit.coord == coord {
+            return unit
         }
         return nil
     }

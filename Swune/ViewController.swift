@@ -98,10 +98,6 @@ class ViewController: UIViewController {
         }
         selectionView.contentMode = .scaleToFill
         selectionView.layer.magnificationFilter = .nearest
-        selectionView.frame.size = CGSize(
-            width: tileSize.width + 8,
-            height: tileSize.height + 8
-        )
         selectionView.isHidden = true
         scrollView.addSubview(selectionView)
     }
@@ -140,12 +136,7 @@ class ViewController: UIViewController {
         for building in world.buildings {
             addSprite(
                 building.imageName,
-                frame: CGRect(
-                    x: tileSize.width * CGFloat(building.x),
-                    y: tileSize.height * CGFloat(building.y),
-                    width: tileSize.width * CGFloat(building.type.width),
-                    height: tileSize.height * CGFloat(building.type.height)
-                ),
+                frame: CGRect(building.bounds),
                 index: i
             )
             i += 1
@@ -155,12 +146,7 @@ class ViewController: UIViewController {
         for unit in world.units {
             addSprite(
                 unit.imageName,
-                frame: CGRect(
-                    x: tileSize.width * CGFloat(unit.x),
-                    y: tileSize.height * CGFloat(unit.y),
-                    width: tileSize.width,
-                    height: tileSize.height
-                ),
+                frame: CGRect(unit.bounds),
                 index: i
             )
             i += 1
@@ -195,11 +181,13 @@ class ViewController: UIViewController {
         }
 
         // Draw reticle
-        if let unit = world.selectedUnit {
-            selectionView.center = CGPoint(
-                x: CGFloat(unit.x + 0.5) * tileSize.width,
-                y: CGFloat(unit.y + 0.5) * tileSize.width
-            )
+        if let entity = world.selectedEntity {
+            selectionView.frame = CGRect(entity.bounds).inset(by: UIEdgeInsets(
+                top: -8,
+                left: -8,
+                bottom: -8,
+                right: -8
+            ))
             selectionView.isHidden = false
         } else {
             selectionView.isHidden = true
@@ -217,17 +205,31 @@ class ViewController: UIViewController {
         let location = gesture.location(in: scrollView)
         let coord = tileCoordinate(at: location)
         if let unit = world.pickUnit(at: coord) {
-            if let current = world.selectedUnit,
+            if let current = world.selectedEntity as? Unit,
                current.team == playerTeam,
                unit.team != playerTeam
             {
                 world.moveUnit(current, to: unit.coord)
                 current.target = unit
+                world.selectedEntity = nil
             } else {
-                world.selectedUnit = unit
+                world.selectedEntity = unit
             }
             updateViews()
-        } else if let unit = world.selectedUnit, unit.team == playerTeam {
+        } else if let building = world.pickBuilding(at: coord) {
+            if let current = world.selectedEntity as? Unit,
+               current.team == playerTeam,
+               building.team != playerTeam
+            {
+                let coord = TileCoord(x: building.x, y: building.y)
+                world.moveUnit(current, to: coord)
+//                current.target = unit
+                world.selectedEntity = nil
+            } else {
+                world.selectedEntity = building
+            }
+            updateViews()
+        } else if let unit = world.selectedEntity as? Unit, unit.team == playerTeam {
             world.moveUnit(unit, to: coord)
             unit.target = nil
         }
@@ -243,6 +245,17 @@ extension ViewController: UIScrollViewDelegate {
 //    func scrollViewDidScroll(_ scrollView: UIScrollView) {
 //        updateTileViews
 //    }
+}
+
+extension CGRect {
+    init(_ bounds: Bounds) {
+        self.init(
+            x: bounds.x * tileSize.width,
+            y: bounds.y * tileSize.height,
+            width: bounds.width * tileSize.width,
+            height: bounds.height * tileSize.width
+        )
+    }
 }
 
 extension Tile {

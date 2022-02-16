@@ -14,7 +14,7 @@ class World {
     private(set) var units: [Unit] = []
     private(set) var buildings: [Building] = []
     var projectiles: [Projectile] = []
-    var selectedUnit: Unit?
+    var selectedEntity: Entity?
 
     init(level: Level, unitTypes: UnitTypes, buildingTypes: BuildingTypes) {
         map = Tilemap(level: level)
@@ -55,6 +55,12 @@ class World {
         // Update projectiles
         for projectile in projectiles {
             projectile.update(timeStep: timeStep, in: self)
+        }
+    }
+
+    func removeUnit(_ unit: Unit) {
+        if let index = units.firstIndex(where: { $0 === unit }) {
+            units.remove(at: index)
         }
     }
 }
