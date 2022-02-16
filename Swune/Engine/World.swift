@@ -6,6 +6,7 @@
 //
 
 typealias UnitTypes = [String: UnitType]
+typealias BuildingTypes = [String: BuildingType]
 
 class World {
     var map: Tilemap
@@ -15,8 +16,18 @@ class World {
     var projectiles: [Projectile] = []
     var selectedUnit: Unit?
 
-    init(level: Level, unitTypes: UnitTypes) {
+    init(level: Level, unitTypes: UnitTypes, buildingTypes: BuildingTypes) {
         map = Tilemap(level: level)
+        buildings = level.buildings.compactMap {
+            guard let type = buildingTypes[$0.type] else {
+                assertionFailure()
+                return nil
+            }
+            let coord = TileCoord(x: $0.x, y: $0.y)
+            let building = Building(type: type, coord: coord)
+            building.team = $0.team
+            return building
+        }
         units = level.units.compactMap {
             guard let type = unitTypes[$0.type] else {
                 assertionFailure()
@@ -27,8 +38,6 @@ class World {
             unit.team = $0.team
             return unit
         }
-
-        buildings.append(Building(x: 9, y: 5))
     }
 
     func tileIsPassable(at coord: TileCoord) -> Bool {

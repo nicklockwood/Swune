@@ -27,13 +27,13 @@ class ViewController: UIViewController {
     private var displayLink: CADisplayLink?
     private var lastFrameTime = CACurrentMediaTime()
     private var scrollView = UIScrollView()
-    private var buildingViews = [UIView]()
-    private var unitViews = [UIImageView]()
+    private var spriteViews = [UIImageView]()
     private var projectileViews = [UIView]()
     private var selectionView = UIImageView()
     private var world: World = .init(
         level: loadJSON("Level1"),
-        unitTypes: loadJSON("Units")
+        unitTypes: loadJSON("Units"),
+        buildingTypes: loadJSON("Buildings")
     )
 
     override func viewDidLoad() {
@@ -87,31 +87,6 @@ class ViewController: UIViewController {
 
     func loadWorld(_ world: World) {
         loadTilemap(world.map)
-        // Draw buildings
-        for building in world.buildings {
-            let buildingView = UIView(frame: CGRect(
-                x: tileSize.width * CGFloat(building.x),
-                y: tileSize.height * CGFloat(building.y),
-                width: tileSize.width * CGFloat(building.width),
-                height: tileSize.height * CGFloat(building.height)
-            ))
-            buildingViews.append(buildingView)
-            buildingView.backgroundColor = .cyan
-            scrollView.addSubview(buildingView)
-        }
-        // Draw units
-        for unit in world.units {
-            let unitView = UIImageView(frame: CGRect(
-                x: tileSize.width * CGFloat(unit.x),
-                y: tileSize.height * CGFloat(unit.y),
-                width: tileSize.width,
-                height: tileSize.height
-            ))
-            unitView.contentMode = .scaleToFill
-            unitView.layer.magnificationFilter = .nearest
-            unitViews.append(unitView)
-            scrollView.addSubview(unitView)
-        }
         // Draw reticle
         if let reticleImage = UIImage(named: "reticle") {
             let scale = tileSize.width / reticleImage.size.width
@@ -143,16 +118,52 @@ class ViewController: UIViewController {
         updateViews()
     }
 
+    func addSprite(_ name: String, frame: CGRect, index: Int) {
+        let spriteView: UIImageView
+        if index >= spriteViews.count {
+            spriteView = UIImageView(frame: frame)
+            spriteView.contentMode = .scaleToFill
+            spriteView.layer.magnificationFilter = .nearest
+            spriteViews.append(spriteView)
+            scrollView.insertSubview(spriteView, belowSubview: selectionView)
+        } else {
+            spriteView = spriteViews[index]
+            spriteView.frame = frame
+        }
+        spriteView.image = UIImage(named: name)
+    }
+
     func updateViews() {
-        // Draw units
-        for (i, unit) in world.units.enumerated() {
-            let view = unitViews[i]
-            view.frame.origin = CGPoint(
-                x: tileSize.width * CGFloat(unit.x),
-                y: tileSize.height * CGFloat(unit.y)
+        var i = 0
+
+        // Draw buildings
+        for building in world.buildings {
+            addSprite(
+                building.imageName,
+                frame: CGRect(
+                    x: tileSize.width * CGFloat(building.x),
+                    y: tileSize.height * CGFloat(building.y),
+                    width: tileSize.width * CGFloat(building.type.width),
+                    height: tileSize.height * CGFloat(building.type.height)
+                ),
+                index: i
             )
-            view.image = UIImage(named: unit.imageName)
-            view.backgroundColor = unit.health <= 0 ? .black : .clear
+            i += 1
+        }
+
+        // Draw units
+        for unit in world.units {
+            addSprite(
+                unit.imageName,
+                frame: CGRect(
+                    x: tileSize.width * CGFloat(unit.x),
+                    y: tileSize.height * CGFloat(unit.y),
+                    width: tileSize.width,
+                    height: tileSize.height
+                ),
+                index: i
+            )
+            i += 1
         }
 
         // Draw projectiles
@@ -176,6 +187,11 @@ class ViewController: UIViewController {
         while projectileViews.count > world.projectiles.count {
             projectileViews.last?.removeFromSuperview()
             projectileViews.removeLast()
+        }
+
+        // Clear unused sprites
+        for j in i ..< spriteViews.count {
+            spriteViews[j].isHidden = true
         }
 
         // Draw reticle

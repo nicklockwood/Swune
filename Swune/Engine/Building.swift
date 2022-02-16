@@ -7,18 +7,29 @@
 
 import Foundation
 
-class Building {
-    var x, y, width, height: Int
+struct BuildingType: Decodable {
+    var width: Int
+    var height: Int
+    var idle: Animation
+}
 
-    init(x: Int, y: Int) {
-        self.x = x
-        self.y = y
-        width = 3
-        height = 2
+class Building {
+    var type: BuildingType
+    var team: Int = 1
+    var x, y: Int
+
+    var imageName: String {
+        type.idle.frame(angle: .zero, time: 0)
+    }
+
+    init(type: BuildingType, coord: TileCoord) {
+        self.type = type
+        self.x = coord.x
+        self.y = coord.y
     }
 
     func contains(_ coord: TileCoord) -> Bool {
         return coord.x >= x && coord.y >= y &&
-            coord.x < x + width && coord.y < y + height
+        coord.x < x + type.width && coord.y < y + type.height
     }
 }

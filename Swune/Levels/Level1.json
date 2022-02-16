@@ -33,6 +33,14 @@
         "          1                     ",
         "                                "
     ],
+    "buildings": [
+        {
+            "type": "blue-constructionYard",
+            "team": 1,
+            "x": 9,
+            "y": 5
+        },
+    ],
     "units": [
         {
             "type": "red-harvester",
