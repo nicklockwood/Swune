@@ -22,6 +22,7 @@ class World {
     var buildings: [Building] = []
     var projectiles: [Projectile] = []
     var particles: [Particle] = []
+    var placeholder: Building?
     weak var selectedEntity: Entity?
 
     init(level: Level, assets: Assets) {

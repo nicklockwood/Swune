@@ -86,9 +86,18 @@ extension Building: Entity {
             construction.elapsedTime = construction.buildTime
             self.construction = nil
             switch construction.type {
-            case let building as BuildingType:
-                // TODO: fit
-                break
+            case let buildingType as BuildingType:
+                guard let nearest = world.nearestFreeRect(
+                    width: buildingType.width,
+                    height: buildingType.height,
+                    to: bounds
+                ) else {
+                    return // TODO: error
+                }
+                world.placeholder = Building(
+                    type: buildingType,
+                    coord: nearest
+                )
             case let unitType as UnitType:
                 guard let nearest = world.nearestFreeTile(to: bounds) else {
                     return // TODO: error
@@ -119,7 +128,7 @@ extension World {
         var unvisited = coords
         while let next = unvisited.popLast() {
             visited.insert(next)
-            for node in nodesAdjacentTo(next) {
+            for node in nodesAdjacentTo(next) where !visited.contains(node) {
                 if tileIsPassable(at: node), !units.contains(where: {
                     $0.coord == node
                 }) {
@@ -129,5 +138,39 @@ extension World {
             }
         }
         return nil
+    }
+
+    func nearestFreeRect(width: Int, height: Int, to bounds: Bounds) -> TileCoord? {
+        let coords = bounds.coords
+        var visited = Set(coords)
+        var unvisited = coords
+        while let next = unvisited.popLast() {
+            visited.insert(next)
+            for node in nodesAdjacentTo(next) where !visited.contains(node) {
+                let bounds = Bounds(
+                    x: Double(node.x),
+                    y: Double(node.y),
+                    width: Double(width),
+                    height: Double(height)
+                )
+                if canPlaceBuilding(at: bounds) {
+                    return node
+                }
+                unvisited.insert(node, at: 0)
+            }
+        }
+        return nil
+    }
+
+    func canPlaceBuilding(at bounds: Bounds) -> Bool {
+        bounds.coords.allSatisfy { coord in
+            switch map.tile(at: coord) {
+            case .stone:
+                return !buildings.contains(where: { $0.contains(coord) })
+                    && !units.contains(where: { $0.coord == coord })
+            case .sand, .spice, .boulder:
+                return false
+            }
+        }
     }
 }

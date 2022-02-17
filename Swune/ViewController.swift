@@ -30,6 +30,7 @@ class ViewController: UIViewController {
     private var spriteViews = [UIImageView]()
     private var projectileViews = [UIView]()
     private let selectionView = UIImageView()
+    private let placeholderView = UIView()
     private let avatarView = AvatarView()
     private let constructionView = AvatarView()
     private var world: World = .init(
@@ -106,6 +107,14 @@ class ViewController: UIViewController {
         selectionView.layer.magnificationFilter = .nearest
         selectionView.isHidden = true
         scrollView.addSubview(selectionView)
+
+        // Draw placeholder
+        placeholderView.isHidden = true
+        placeholderView.layer.borderWidth = 4
+        placeholderView.layer.borderColor = UIColor.white.cgColor
+        let gesture = UIPanGestureRecognizer(target: self, action: #selector(didDrag))
+        placeholderView.addGestureRecognizer(gesture)
+        scrollView.addSubview(placeholderView)
 
         // Draw avatar
         avatarView.isHidden = true
@@ -217,6 +226,22 @@ class ViewController: UIViewController {
             selectionView.isHidden = true
         }
 
+        // Draw placeholder
+        if let placeholder = world.placeholder {
+            var bounds = placeholder.bounds
+            bounds.x += placeholderDelta.x
+            bounds.y += placeholderDelta.y
+            placeholderView.frame = CGRect(bounds)
+            if world.canPlaceBuilding(at: bounds) {
+                placeholderView.backgroundColor = .green.withAlphaComponent(0.5)
+            } else {
+                placeholderView.backgroundColor = .red.withAlphaComponent(0.5)
+            }
+            placeholderView.isHidden = false
+        } else {
+            placeholderView.isHidden = true
+        }
+
         if let selectedEntity = world.selectedEntity {
             // Draw avatar
             avatarView.imageName = selectedEntity.avatarName
@@ -234,18 +259,18 @@ class ViewController: UIViewController {
             if let building = selectedEntity as? Building {
                 if avatarView.menu == nil {
                     avatarView.menu = UIMenu(children: [
-//                        UIAction(title: "Build") { [weak self] _ in
-//                            guard let self = self else { return }
-//                            building.construction = Construction(
-//                                type: self.world.assets.buildingTypes["vehicleFactory"]!
-//                            )
-//                        }
                         UIAction(title: "Build") { [weak self] _ in
                             guard let self = self else { return }
                             building.construction = Construction(
-                                type: self.world.assets.unitTypes["blue-harvester"]!
+                                type: self.world.assets.buildingTypes["vehicleFactory"]!
                             )
                         }
+//                        UIAction(title: "Build") { [weak self] _ in
+//                            guard let self = self else { return }
+//                            building.construction = Construction(
+//                                type: self.world.assets.unitTypes["blue-harvester"]!
+//                            )
+//                        }
                     ])
                 }
                 // Draw build progress
@@ -275,7 +300,12 @@ class ViewController: UIViewController {
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: scrollView)
         let coord = tileCoordinate(at: location)
-        if let unit = world.pickUnit(at: coord) {
+        if let placeholder = world.placeholder, placeholder.contains(coord) {
+            if world.canPlaceBuilding(at: placeholder.bounds) {
+                world.buildings.append(placeholder)
+                world.placeholder = nil
+            }
+        } else if let unit = world.pickUnit(at: coord) {
             if let current = world.selectedEntity as? Unit,
                current.team == playerTeam,
                unit.team != playerTeam
@@ -302,6 +332,28 @@ class ViewController: UIViewController {
         } else {
             world.selectedEntity = nil
             updateViews()
+        }
+    }
+
+    private var lastDragLocation: CGPoint = .zero
+    private var placeholderDelta: (x: Double, y: Double) = (0, 0)
+    @objc private func didDrag(_ gesture: UIPanGestureRecognizer) {
+        guard let placeholder = world.placeholder else { return }
+        let location = gesture.location(in: scrollView)
+        switch gesture.state {
+        case .began:
+            lastDragLocation = location
+        case .changed:
+            placeholderDelta.x = (location.x - lastDragLocation.x) / tileSize.width
+            placeholderDelta.y = (location.y - lastDragLocation.y) / tileSize.height
+        case .ended:
+            placeholder.x += Int(round((location.x - lastDragLocation.x) / tileSize.width))
+            placeholder.y += Int(round((location.y - lastDragLocation.y) / tileSize.height))
+            placeholderDelta = (0, 0)
+        case .cancelled, .failed, .possible:
+            break
+        @unknown default:
+            break
         }
     }
 
