@@ -29,7 +29,8 @@ class ViewController: UIViewController {
     private var scrollView = UIScrollView()
     private var spriteViews = [UIImageView]()
     private var projectileViews = [UIView]()
-    private var selectionView = UIImageView()
+    private let selectionView = UIImageView()
+    private let avatarView = AvatarView()
     private var world: World = .init(
         level: loadJSON("Level1"),
         assets: Assets(
@@ -90,6 +91,7 @@ class ViewController: UIViewController {
 
     func loadWorld(_ world: World) {
         loadTilemap(world.map)
+
         // Draw reticle
         if let reticleImage = UIImage(named: "reticle") {
             let scale = tileSize.width / reticleImage.size.width
@@ -103,6 +105,10 @@ class ViewController: UIViewController {
         selectionView.layer.magnificationFilter = .nearest
         selectionView.isHidden = true
         scrollView.addSubview(selectionView)
+
+        // Draw avatar
+        avatarView.isHidden = true
+        view.addSubview(avatarView)
     }
 
     @objc func update(_ displayLink: CADisplayLink) {
@@ -205,6 +211,24 @@ class ViewController: UIViewController {
         } else {
             selectionView.isHidden = true
         }
+
+        // Draw avatar
+        if let selectedEntity = world.selectedEntity {
+            avatarView.imageName = selectedEntity.avatarName
+            let health = selectedEntity.health / selectedEntity.maxHealth
+            avatarView.progress = health
+            switch health {
+            case 0 ..< 0.3:
+                avatarView.barColor = .red
+            case 0.3 ..< 0.6:
+                avatarView.barColor = .yellow
+            default:
+                avatarView.barColor = .green
+            }
+            avatarView.isHidden = false
+        } else {
+            avatarView.isHidden = true
+        }
     }
 
     func tileCoordinate(at location: CGPoint) -> TileCoord {
@@ -224,10 +248,8 @@ class ViewController: UIViewController {
             {
                 world.moveUnit(current, to: unit.coord)
                 current.target = unit
-                world.selectedEntity = nil
-            } else {
-                world.selectedEntity = unit
             }
+            world.selectedEntity = unit
             updateViews()
         } else if let building = world.pickBuilding(at: coord) {
             if let current = world.selectedEntity as? Unit,
@@ -237,20 +259,24 @@ class ViewController: UIViewController {
                 let coord = TileCoord(x: building.x, y: building.y)
                 world.moveUnit(current, to: coord)
 //                current.target = unit
-                world.selectedEntity = nil
-            } else {
-                world.selectedEntity = building
             }
+            world.selectedEntity = building
             updateViews()
         } else if let unit = world.selectedEntity as? Unit, unit.team == playerTeam {
             world.moveUnit(unit, to: coord)
             unit.target = nil
+        } else {
+            world.selectedEntity = nil
+            updateViews()
         }
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-
+        avatarView.frame.origin = CGPoint(
+            x: view.frame.width - avatarView.frame.width - 16,
+            y: view.safeAreaInsets.top + 16
+        )
     }
 }
 

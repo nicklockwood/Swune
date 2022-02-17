@@ -22,7 +22,7 @@ class World {
     var buildings: [Building] = []
     var projectiles: [Projectile] = []
     var particles: [Particle] = []
-    var selectedEntity: Entity?
+    weak var selectedEntity: Entity?
 
     init(level: Level, assets: Assets) {
         self.assets = assets

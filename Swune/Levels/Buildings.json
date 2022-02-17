@@ -1,5 +1,15 @@
 {
-    "blue-constructionYard": {
+    "constructionYard": {
+        "width": 2,
+        "height": 2,
+        "idle": {
+            "duration": 0,
+            "framesByAngle": [
+                ["spice-storage"],
+            ]
+        }
+    },
+    "vehicleFactory": {
         "width": 2,
         "height": 2,
         "idle": {

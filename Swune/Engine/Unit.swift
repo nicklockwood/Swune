@@ -17,7 +17,7 @@ struct UnitType: Decodable {
     var idle: Animation
 }
 
-class Unit: Entity {
+class Unit {
     var type: UnitType
     var x, y: Double
     var angle: Angle = .zero
@@ -31,14 +31,6 @@ class Unit: Entity {
 
     var coord: TileCoord {
         TileCoord(x: Int(x + 0.5), y: Int(y + 0.5))
-    }
-
-    var bounds: Bounds {
-        .init(x: x, y: y, width: 1, height: 1)
-    }
-
-    var imageName: String {
-        type.idle.frame(angle: angle, time: 0)
     }
 
     init(type: UnitType, coord: TileCoord) {
@@ -129,6 +121,24 @@ class Unit: Entity {
             _ = world.moveUnitAside(self)
             return
         }
+    }
+}
+
+extension Unit: Entity {
+    var bounds: Bounds {
+        .init(x: x, y: y, width: 1, height: 1)
+    }
+
+    var imageName: String {
+        type.idle.frame(angle: angle, time: 0)
+    }
+
+    var avatarName: String {
+        type.idle.frame(angle: .init(radians: .pi), time: 0)
+    }
+
+    var maxHealth: Double {
+        1
     }
 }
 

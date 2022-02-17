@@ -13,11 +13,24 @@ struct BuildingType: Decodable {
     var idle: Animation
 }
 
-class Building: Entity {
+class Building {
     var type: BuildingType
     var team: Int = 1
     var x, y: Int
 
+    init(type: BuildingType, coord: TileCoord) {
+        self.type = type
+        self.x = coord.x
+        self.y = coord.y
+    }
+
+    func contains(_ coord: TileCoord) -> Bool {
+        return coord.x >= x && coord.y >= y &&
+        coord.x < x + type.width && coord.y < y + type.height
+    }
+}
+
+extension Building: Entity {
     var bounds: Bounds {
         .init(
             x: Double(x),
@@ -31,15 +44,16 @@ class Building: Entity {
         type.idle.frame(angle: .zero, time: 0)
     }
 
-    init(type: BuildingType, coord: TileCoord) {
-        self.type = type
-        self.x = coord.x
-        self.y = coord.y
+    var avatarName: String {
+        type.idle.frame(angle: .zero, time: 0)
     }
 
-    func contains(_ coord: TileCoord) -> Bool {
-        return coord.x >= x && coord.y >= y &&
-        coord.x < x + type.width && coord.y < y + type.height
+    var health: Double {
+        1
+    }
+
+    var maxHealth: Double {
+        1
     }
 }
 

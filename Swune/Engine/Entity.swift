@@ -9,7 +9,10 @@ struct Bounds {
     var x, y, width, height: Double
 }
 
-protocol Entity {
+protocol Entity: AnyObject {
     var team: Int { get }
+    var health: Double { get }
+    var maxHealth: Double { get }
     var bounds: Bounds { get }
+    var avatarName: String { get }
 }
