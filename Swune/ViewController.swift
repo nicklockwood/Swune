@@ -149,6 +149,7 @@ class ViewController: UIViewController {
         } else {
             spriteView = spriteViews[index]
             spriteView.frame = frame
+            spriteView.isHidden = false
         }
         spriteView.image = UIImage(named: name)
     }
