@@ -7,14 +7,18 @@
 
 import Foundation
 
-struct UnitType: Decodable {
+struct UnitType: EntityType, Decodable {
     var speed: Double
     var turnSpeed: Double
-//    var range: Double = 3
-//    var health: Double = 1
-//    var attackCooldown: Double = 1
-
     var idle: Animation
+
+    var avatarName: String {
+        idle.frame(angle: .init(radians: .pi), time: 0)
+    }
+
+    var maxHealth: Double {
+        1
+    }
 }
 
 class Unit {
@@ -23,7 +27,7 @@ class Unit {
     var angle: Angle = .zero
     var team: Int = 1
     var range: Double = 3
-    var health: Double = 1
+    var health: Double
     var attackCooldown: Double = 1
     var lastFired: Double = -.greatestFiniteMagnitude
     var path: [TileCoord] = []
@@ -37,11 +41,30 @@ class Unit {
         self.type = type
         self.x = Double(coord.x)
         self.y = Double(coord.y)
+        self.health = type.maxHealth
     }
 
     func distance(from coord: TileCoord) -> Double {
         let dx = Double(coord.x) - x, dy = Double(coord.y) - y
         return (dx * dx + dy * dy).squareRoot()
+    }
+}
+
+extension Unit: Entity {
+    var bounds: Bounds {
+        .init(x: x, y: y, width: 1, height: 1)
+    }
+
+    var imageName: String {
+        type.idle.frame(angle: angle, time: 0)
+    }
+
+    var avatarName: String {
+        type.avatarName
+    }
+
+    var maxHealth: Double {
+        type.maxHealth
     }
 
     func update(timeStep: Double, in world: World) {
@@ -121,24 +144,6 @@ class Unit {
             _ = world.moveUnitAside(self)
             return
         }
-    }
-}
-
-extension Unit: Entity {
-    var bounds: Bounds {
-        .init(x: x, y: y, width: 1, height: 1)
-    }
-
-    var imageName: String {
-        type.idle.frame(angle: angle, time: 0)
-    }
-
-    var avatarName: String {
-        type.idle.frame(angle: .init(radians: .pi), time: 0)
-    }
-
-    var maxHealth: Double {
-        1
     }
 }
 

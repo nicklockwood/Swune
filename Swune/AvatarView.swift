@@ -70,10 +70,4 @@ class AvatarView: UIButton {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-    func update() {
-        menu = UIMenu(children: [
-            UIAction(title: "Self Destruct") { _ in }
-        ])
-    }
 }

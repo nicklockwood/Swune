@@ -31,6 +31,7 @@ class ViewController: UIViewController {
     private var projectileViews = [UIView]()
     private let selectionView = UIImageView()
     private let avatarView = AvatarView()
+    private let constructionView = AvatarView()
     private var world: World = .init(
         level: loadJSON("Level1"),
         assets: Assets(
@@ -109,6 +110,10 @@ class ViewController: UIViewController {
         // Draw avatar
         avatarView.isHidden = true
         view.addSubview(avatarView)
+
+        // Draw construction
+        constructionView.isHidden = true
+        view.addSubview(constructionView)
     }
 
     @objc func update(_ displayLink: CADisplayLink) {
@@ -212,8 +217,8 @@ class ViewController: UIViewController {
             selectionView.isHidden = true
         }
 
-        // Draw avatar
         if let selectedEntity = world.selectedEntity {
+            // Draw avatar
             avatarView.imageName = selectedEntity.avatarName
             let health = selectedEntity.health / selectedEntity.maxHealth
             avatarView.progress = health
@@ -226,8 +231,37 @@ class ViewController: UIViewController {
                 avatarView.barColor = .green
             }
             avatarView.isHidden = false
+            if let building = selectedEntity as? Building {
+                if avatarView.menu == nil {
+                    avatarView.menu = UIMenu(children: [
+//                        UIAction(title: "Build") { [weak self] _ in
+//                            guard let self = self else { return }
+//                            building.construction = Construction(
+//                                type: self.world.assets.buildingTypes["vehicleFactory"]!
+//                            )
+//                        }
+                        UIAction(title: "Build") { [weak self] _ in
+                            guard let self = self else { return }
+                            building.construction = Construction(
+                                type: self.world.assets.unitTypes["blue-harvester"]!
+                            )
+                        }
+                    ])
+                }
+                // Draw build progress
+                if let construction = building.construction {
+                    constructionView.imageName = construction.type.avatarName
+                    constructionView.progress = construction.progress
+                    constructionView.barColor = .cyan
+                    constructionView.isHidden = false
+                } else {
+                    constructionView.isHidden = true
+                }
+            }
         } else {
+            avatarView.menu = nil
             avatarView.isHidden = true
+            constructionView.isHidden = true
         }
     }
 
@@ -277,6 +311,10 @@ class ViewController: UIViewController {
             x: view.frame.width - avatarView.frame.width - 16,
             y: view.safeAreaInsets.top + 16
         )
+        constructionView.frame.origin = CGPoint(
+            x: view.frame.width - constructionView.frame.width - 16,
+            y: avatarView.frame.maxY + 16
+        )
     }
 }
 
@@ -307,16 +345,16 @@ extension Tile {
         }
     }
 
-    var imageName: String {
+    var imageName: String? {
         switch self {
         case .sand: return "sand"
         case .stone: return "stone"
         case .spice: return "heavy-spice"
-        case .boulder: return ""
+        case .boulder: return nil
         }
     }
 
     var image: UIImage? {
-        .init(named: imageName)
+        imageName.flatMap { UIImage(named: $0) }
     }
 }

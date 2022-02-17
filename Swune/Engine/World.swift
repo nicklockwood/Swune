@@ -57,6 +57,10 @@ class World {
 
     func update(timeStep: Double) {
         elapsedTime += timeStep
+        // Update buildings
+        for building in buildings {
+            building.update(timeStep: timeStep, in: self)
+        }
         // Update units
         for unit in units {
             unit.update(timeStep: timeStep, in: self)
@@ -75,7 +79,7 @@ class World {
 extension World: Graph {
     typealias Node = TileCoord
 
-    func nodesConnectedTo(_ node: TileCoord) -> [TileCoord] {
+    func nodesAdjacentTo(_ node: TileCoord) -> [TileCoord] {
         return [
             Node(x: node.x - 1, y: node.y - 1),
             Node(x: node.x - 1, y: node.y),
@@ -86,10 +90,13 @@ extension World: Graph {
             Node(x: node.x + 1, y: node.y - 1),
             Node(x: node.x, y: node.y - 1),
         ].filter {
-            guard $0.x >= 0, $0.x < map.width, $0.y >= 0, $0.y < map.height else {
-                return false
-            }
-            return tileIsPassable(at: $0) &&
+            $0.x >= 0 && $0.x < map.width && $0.y >= 0 && $0.y < map.height
+        }
+    }
+
+    func nodesConnectedTo(_ node: TileCoord) -> [TileCoord] {
+        nodesAdjacentTo(node).filter {
+            tileIsPassable(at: $0) &&
                 tileIsPassable(at: Node(x: $0.x, y: node.y)) &&
                 tileIsPassable(at: Node(x: node.x, y: $0.y))
         }
