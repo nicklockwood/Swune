@@ -41,6 +41,7 @@ class Building {
     var x, y: Int
     var health: Double
     var construction: Construction?
+    var placeholder: Building?
 
     init(type: BuildingType, coord: TileCoord) {
         self.type = type
@@ -94,7 +95,7 @@ extension Building: Entity {
                 ) else {
                     return // TODO: error
                 }
-                world.placeholder = Building(
+                placeholder = Building(
                     type: buildingType,
                     coord: nearest
                 )
@@ -115,6 +116,15 @@ extension Building: Entity {
 }
 
 extension World {
+    var selectedBuilding: Building? {
+        selectedEntity as? Building
+    }
+
+    var placeholder: Building? {
+        get { selectedBuilding?.placeholder }
+        set { selectedBuilding?.placeholder = nil }
+    }
+
     func pickBuilding(at coord: TileCoord) -> Building? {
         for building in buildings where building.contains(coord) {
             return building
@@ -144,6 +154,7 @@ extension World {
         let coords = bounds.coords
         var visited = Set(coords)
         var unvisited = coords
+        var possible = [Node]()
         while let next = unvisited.popLast() {
             visited.insert(next)
             for node in nodesAdjacentTo(next) where !visited.contains(node) {
@@ -153,17 +164,31 @@ extension World {
                     width: Double(width),
                     height: Double(height)
                 )
-                if canPlaceBuilding(at: bounds) {
-                    return node
+                if isNextToBuilding(at: bounds) {
+                    if isFreeSpace(at: bounds) {
+                        return node
+                    }
+                    unvisited.insert(node, at: 0)
+                    possible.append(node)
                 }
-                unvisited.insert(node, at: 0)
             }
         }
-        return nil
+        return possible.first
     }
 
-    func canPlaceBuilding(at bounds: Bounds) -> Bool {
-        bounds.coords.allSatisfy { coord in
+    func nodesAdjacentTo(_ bounds: Bounds) -> Set<Node> {
+        let coords = bounds.coords
+        var visited = Set(coords)
+        for coord in coords {
+            for node in nodesAdjacentTo(coord) where !coords.contains(node) {
+                visited.insert(node)
+            }
+        }
+        return visited
+    }
+
+    func isFreeSpace(at bounds: Bounds) -> Bool {
+        bounds.coords.allSatisfy({ coord in
             switch map.tile(at: coord) {
             case .stone:
                 return !buildings.contains(where: { $0.contains(coord) })
@@ -171,6 +196,17 @@ extension World {
             case .sand, .spice, .boulder:
                 return false
             }
-        }
+        })
+    }
+
+    func isNextToBuilding(at bounds: Bounds) -> Bool {
+        let adjacentNodes = nodesAdjacentTo(bounds)
+        return buildings.contains(where: { building in
+            !adjacentNodes.isDisjoint(with: building.bounds.coords)
+        })
+    }
+
+    func canPlaceBuilding(at bounds: Bounds) -> Bool {
+        isFreeSpace(at: bounds) && isNextToBuilding(at: bounds)
     }
 }

@@ -242,8 +242,8 @@ class ViewController: UIViewController {
             placeholderView.isHidden = true
         }
 
+        // Draw avatar
         if let selectedEntity = world.selectedEntity {
-            // Draw avatar
             avatarView.imageName = selectedEntity.avatarName
             let health = selectedEntity.health / selectedEntity.maxHealth
             avatarView.progress = health
@@ -256,37 +256,49 @@ class ViewController: UIViewController {
                 avatarView.barColor = .green
             }
             avatarView.isHidden = false
-            if let building = selectedEntity as? Building {
-                if avatarView.menu == nil {
-                    avatarView.menu = UIMenu(children: [
-                        UIAction(title: "Build") { [weak self] _ in
-                            guard let self = self else { return }
-                            building.construction = Construction(
-                                type: self.world.assets.buildingTypes["vehicleFactory"]!
-                            )
-                        }
-//                        UIAction(title: "Build") { [weak self] _ in
-//                            guard let self = self else { return }
-//                            building.construction = Construction(
-//                                type: self.world.assets.unitTypes["blue-harvester"]!
-//                            )
-//                        }
-                    ])
-                }
-                // Draw build progress
-                if let construction = building.construction {
-                    constructionView.imageName = construction.type.avatarName
-                    constructionView.progress = construction.progress
-                    constructionView.barColor = .cyan
-                    constructionView.isHidden = false
-                } else {
-                    constructionView.isHidden = true
-                }
-            }
         } else {
             avatarView.menu = nil
             avatarView.isHidden = true
             constructionView.isHidden = true
+        }
+
+        // Draw build progress
+        if let building = world.selectedBuilding {
+            if let construction = building.construction {
+                constructionView.imageName = construction.type.avatarName
+                constructionView.progress = construction.progress
+                constructionView.barColor = .cyan
+                constructionView.isHidden = false
+            } else {
+                constructionView.isHidden = true
+            }
+        }
+
+        // Update menu
+        if let building = world.selectedBuilding {
+            if building.placeholder != nil || building.construction != nil {
+                avatarView.menu = UIMenu(children: [
+                    UIAction(title: "Cancel") { _ in
+                        building.construction = nil
+                        building.placeholder = nil
+                    }
+                ])
+            } else {
+                avatarView.menu = UIMenu(children: [
+                    UIAction(title: "Build") { [weak self] _ in
+                        guard let self = self else { return }
+                        building.construction = Construction(
+                            type: self.world.assets.buildingTypes["vehicleFactory"]!
+                        )
+                    }
+    //                        UIAction(title: "Build") { [weak self] _ in
+    //                            guard let self = self else { return }
+    //                            building.construction = Construction(
+    //                                type: self.world.assets.unitTypes["blue-harvester"]!
+    //                            )
+    //                        }
+                ])
+            }
         }
     }
 

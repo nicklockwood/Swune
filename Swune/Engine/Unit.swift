@@ -148,6 +148,10 @@ extension Unit: Entity {
 }
 
 extension World {
+    var selectedUnit: Unit? {
+        selectedEntity as? Unit
+    }
+
     func pickUnit(at coord: TileCoord) -> Unit? {
         for unit in units where unit.coord == coord {
             return unit
