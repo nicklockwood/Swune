@@ -18,5 +18,27 @@
                 ["spice-storage"],
             ]
         }
+    },
+    "slab": {
+        "width": 1,
+        "height": 1,
+        "role": "slab",
+        "idle": {
+            "duration": 0,
+            "framesByAngle": [
+                ["slab"],
+            ]
+        }
+    },
+    "largeSlab": {
+        "width": 2,
+        "height": 2,
+        "role": "slab",
+        "idle": {
+            "duration": 0,
+            "framesByAngle": [
+                ["slab"],
+            ]
+        }
     }
 }

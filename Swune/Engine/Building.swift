@@ -7,9 +7,14 @@
 
 import Foundation
 
+enum BuildingRole: String, Decodable {
+    case slab
+}
+
 struct BuildingType: EntityType, Decodable {
     var width: Int
     var height: Int
+    var role: BuildingRole?
     var idle: Animation
 
     var avatarName: String {
@@ -132,6 +137,43 @@ extension World {
         return nil
     }
 
+    func canPlaceBuilding(_ building: Building) -> Bool {
+        canPlaceBuilding(building, at: building.bounds)
+    }
+
+    func canPlaceBuilding(_ building: Building, at bounds: Bounds) -> Bool {
+        switch building.type.role {
+        case .slab:
+            return canPlaceSlab(at: bounds)
+        default:
+            return canPlaceBuilding(at: bounds)
+        }
+    }
+
+    func placeBuilding(_ building: Building) -> Bool {
+        guard canPlaceBuilding(building) else {
+            return false
+        }
+        if building.type.role == .slab {
+            for coord in building.bounds.coords {
+                if map.tile(at: coord) == .stone {
+                    map.setTile(.slab, at: coord)
+                }
+            }
+        } else {
+            if building.bounds.coords.contains(where: {
+                map.tile(at: $0) != .slab
+            }) {
+                // Apply 50% damage for not placing on slab
+                building.health /= 2
+            }
+            buildings.append(building)
+        }
+        return true
+    }
+}
+
+private extension World {
     func nearestFreeTile(to bounds: Bounds) -> TileCoord? {
         let coords = bounds.coords
         var visited = Set(coords)
@@ -165,7 +207,7 @@ extension World {
                     height: Double(height)
                 )
                 if isNextToBuilding(at: bounds) {
-                    if isFreeSpace(at: bounds) {
+                    if isBuildableSpace(at: bounds) {
                         return node
                     }
                     unvisited.insert(node, at: 0)
@@ -187,16 +229,16 @@ extension World {
         return visited
     }
 
-    func isFreeSpace(at bounds: Bounds) -> Bool {
-        bounds.coords.allSatisfy({ coord in
+    func isBuildableSpace(at bounds: Bounds) -> Bool {
+        bounds.coords.allSatisfy { coord in
             switch map.tile(at: coord) {
-            case .stone:
+            case .stone, .slab:
                 return !buildings.contains(where: { $0.contains(coord) })
                     && !units.contains(where: { $0.coord == coord })
             case .sand, .spice, .boulder:
                 return false
             }
-        })
+        }
     }
 
     func isNextToBuilding(at bounds: Bounds) -> Bool {
@@ -207,6 +249,17 @@ extension World {
     }
 
     func canPlaceBuilding(at bounds: Bounds) -> Bool {
-        isFreeSpace(at: bounds) && isNextToBuilding(at: bounds)
+        isBuildableSpace(at: bounds) && isNextToBuilding(at: bounds)
+    }
+
+    func canPlaceSlab(at bounds: Bounds) -> Bool {
+        bounds.coords.contains(where: { coord in
+            switch map.tile(at: coord) {
+            case .stone:
+                return !buildings.contains(where: { $0.contains(coord) })
+            case .slab, .sand, .spice, .boulder:
+                return false
+            }
+        })
     }
 }

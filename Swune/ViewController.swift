@@ -27,6 +27,7 @@ class ViewController: UIViewController {
     private var displayLink: CADisplayLink?
     private var lastFrameTime = CACurrentMediaTime()
     private var scrollView = UIScrollView()
+    private var tileViews = [UIImageView]()
     private var spriteViews = [UIImageView]()
     private var projectileViews = [UIView]()
     private let selectionView = UIImageView()
@@ -82,10 +83,10 @@ class ViewController: UIViewController {
                 ))
                 let coord = TileCoord(x: x, y: y)
                 let tile = tilemap.tile(at: coord)
-                tileView.backgroundColor = tile.color
                 tileView.image = tile.image
                 tileView.contentMode = .scaleToFill
                 tileView.layer.magnificationFilter = .nearest
+                tileViews.append(tileView)
                 scrollView.addSubview(tileView)
             }
         }
@@ -154,6 +155,16 @@ class ViewController: UIViewController {
 
     func updateViews() {
         var i = 0
+
+        // Draw map
+        let tilemap = world.map
+        for y in 0 ..< tilemap.height {
+            for x in 0 ..< tilemap.width {
+                let tileView = tileViews[y * tilemap.width + x]
+                let tile = tilemap.tile(at: TileCoord(x: x, y: y))
+                tileView.image = tile.image
+            }
+        }
 
         // Draw buildings
         for building in world.buildings {
@@ -232,7 +243,7 @@ class ViewController: UIViewController {
             bounds.x += placeholderDelta.x
             bounds.y += placeholderDelta.y
             placeholderView.frame = CGRect(bounds)
-            if world.canPlaceBuilding(at: bounds) {
+            if world.canPlaceBuilding(placeholder, at: bounds) {
                 placeholderView.backgroundColor = .green.withAlphaComponent(0.5)
             } else {
                 placeholderView.backgroundColor = .red.withAlphaComponent(0.5)
@@ -259,19 +270,18 @@ class ViewController: UIViewController {
         } else {
             avatarView.menu = nil
             avatarView.isHidden = true
-            constructionView.isHidden = true
         }
 
         // Draw build progress
-        if let building = world.selectedBuilding {
-            if let construction = building.construction {
-                constructionView.imageName = construction.type.avatarName
-                constructionView.progress = construction.progress
-                constructionView.barColor = .cyan
-                constructionView.isHidden = false
-            } else {
-                constructionView.isHidden = true
-            }
+        if let building = world.selectedBuilding,
+           let construction = building.construction
+        {
+            constructionView.imageName = construction.type.avatarName
+            constructionView.progress = construction.progress
+            constructionView.barColor = .cyan
+            constructionView.isHidden = false
+        } else {
+            constructionView.isHidden = true
         }
 
         // Update menu
@@ -284,12 +294,27 @@ class ViewController: UIViewController {
                     }
                 ])
             } else {
+                let slab = self.world.assets.buildingTypes["slab"]!
+                let largeSlab = self.world.assets.buildingTypes["largeSlab"]!
+                let vehicleFactory = self.world.assets.buildingTypes["vehicleFactory"]!
                 avatarView.menu = UIMenu(children: [
-                    UIAction(title: "Build") { [weak self] _ in
-                        guard let self = self else { return }
-                        building.construction = Construction(
-                            type: self.world.assets.buildingTypes["vehicleFactory"]!
-                        )
+                    UIAction(
+                        title: "Build Slab",
+                        image: UIImage(named: slab.avatarName)
+                    ) { _ in
+                        building.construction = Construction(type: slab)
+                    },
+                    UIAction(
+                        title: "Build Large Slab",
+                        image: UIImage(named: largeSlab.avatarName)
+                    ) { _ in
+                        building.construction = Construction(type: largeSlab)
+                    },
+                    UIAction(
+                        title: "Build Vehicle Factory",
+                        image: UIImage(named: vehicleFactory.avatarName)
+                    ) { _ in
+                        building.construction = Construction(type: vehicleFactory)
                     }
     //                        UIAction(title: "Build") { [weak self] _ in
     //                            guard let self = self else { return }
@@ -299,6 +324,8 @@ class ViewController: UIViewController {
     //                        }
                 ])
             }
+        } else if let unit = world.selectedUnit {
+            avatarView.menu = nil
         }
     }
 
@@ -312,9 +339,8 @@ class ViewController: UIViewController {
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: scrollView)
         let coord = tileCoordinate(at: location)
-        if let placeholder = world.placeholder, placeholder.contains(coord) {
-            if world.canPlaceBuilding(at: placeholder.bounds) {
-                world.buildings.append(placeholder)
+        if let building = world.placeholder, building.contains(coord) {
+            if world.placeBuilding(building) {
                 world.placeholder = nil
             }
         } else if let unit = world.pickUnit(at: coord) {
@@ -400,18 +426,10 @@ extension CGRect {
 }
 
 extension Tile {
-    var color: UIColor {
-        switch self {
-        case .sand: return .yellow
-        case .stone: return .gray
-        case .spice: return .orange
-        case .boulder: return .brown
-        }
-    }
-
     var imageName: String? {
         switch self {
         case .sand: return "sand"
+        case .slab: return "slab"
         case .stone: return "stone"
         case .spice: return "heavy-spice"
         case .boulder: return nil

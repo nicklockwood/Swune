@@ -16,6 +16,7 @@ enum Tile: Character, Codable {
     case stone = "1"
     case spice = "2"
     case boulder = "3"
+    case slab = "4"
 
     var isPassable: Bool {
         return self != .boulder
@@ -38,6 +39,10 @@ struct Tilemap: Codable {
 
     func tile(at coord: TileCoord) -> Tile {
         return tiles[coord.y * width + coord.x]
+    }
+
+    mutating func setTile(_ tile: Tile, at coord: TileCoord) {
+        tiles[coord.y * width + coord.x] = tile
     }
 }
 
