@@ -55,6 +55,11 @@ class Unit: Entity {
     func update(timeStep: Double, in world: World) {
         if health <= 0 {
             world.removeUnit(self)
+            world.particles.append(Particle(
+                x: x + 0.5,
+                y: y + 0.5,
+                animation: world.assets.explosion
+            ))
             return
         }
         if let target = target {
@@ -133,6 +138,12 @@ extension World {
             return unit
         }
         return nil
+    }
+
+    func removeUnit(_ unit: Unit) {
+        if let index = units.firstIndex(where: { $0 === unit }) {
+            units.remove(at: index)
+        }
     }
 
     func moveUnit(_ unit: Unit, to coord: TileCoord) {

@@ -24,6 +24,7 @@
 		0170980827BD876C002ED344 /* Animation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0170980727BD876C002ED344 /* Animation.swift */; };
 		0170980C27BDA714002ED344 /* Angle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0170980B27BDA714002ED344 /* Angle.swift */; };
 		0170980E27BDBD68002ED344 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0170980D27BDBD68002ED344 /* Entity.swift */; };
+		0170981027BDD6D3002ED344 /* Particle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0170980F27BDD6D3002ED344 /* Particle.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +47,7 @@
 		0170980727BD876C002ED344 /* Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animation.swift; sourceTree = "<group>"; };
 		0170980B27BDA714002ED344 /* Angle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Angle.swift; sourceTree = "<group>"; };
 		0170980D27BDBD68002ED344 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
+		0170980F27BDD6D3002ED344 /* Particle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Particle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 				0170980327BC613B002ED344 /* Level.swift */,
 				017097F327B99352002ED344 /* Tilemap.swift */,
 				017097F827B9A0FF002ED344 /* Pathfinder.swift */,
+				0170980F27BDD6D3002ED344 /* Particle.swift */,
 				017097FF27BC30AB002ED344 /* Projectile.swift */,
 				017097F527B9995C002ED344 /* World.swift */,
 				0170980D27BDBD68002ED344 /* Entity.swift */,
@@ -183,6 +186,7 @@
 				0170980827BD876C002ED344 /* Animation.swift in Sources */,
 				017097F427B99352002ED344 /* Tilemap.swift in Sources */,
 				017097E427B9932C002ED344 /* ViewController.swift in Sources */,
+				0170981027BDD6D3002ED344 /* Particle.swift in Sources */,
 				017097E027B9932C002ED344 /* AppDelegate.swift in Sources */,
 				017097FC27B9D317002ED344 /* Unit.swift in Sources */,
 				017097E227B9932C002ED344 /* SceneDelegate.swift in Sources */,

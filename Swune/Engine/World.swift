@@ -5,21 +5,30 @@
 //  Created by Nick Lockwood on 13/02/2022.
 //
 
+struct Assets {
+    var unitTypes: UnitTypes
+    var buildingTypes: BuildingTypes
+    var explosion: Animation
+}
+
 typealias UnitTypes = [String: UnitType]
 typealias BuildingTypes = [String: BuildingType]
 
 class World {
+    var assets: Assets
     var map: Tilemap
     var elapsedTime: Double = 0
-    private(set) var units: [Unit] = []
-    private(set) var buildings: [Building] = []
+    var units: [Unit] = []
+    var buildings: [Building] = []
     var projectiles: [Projectile] = []
+    var particles: [Particle] = []
     var selectedEntity: Entity?
 
-    init(level: Level, unitTypes: UnitTypes, buildingTypes: BuildingTypes) {
+    init(level: Level, assets: Assets) {
+        self.assets = assets
         map = Tilemap(level: level)
         buildings = level.buildings.compactMap {
-            guard let type = buildingTypes[$0.type] else {
+            guard let type = assets.buildingTypes[$0.type] else {
                 assertionFailure()
                 return nil
             }
@@ -29,7 +38,7 @@ class World {
             return building
         }
         units = level.units.compactMap {
-            guard let type = unitTypes[$0.type] else {
+            guard let type = assets.unitTypes[$0.type] else {
                 assertionFailure()
                 return nil
             }
@@ -56,11 +65,9 @@ class World {
         for projectile in projectiles {
             projectile.update(timeStep: timeStep, in: self)
         }
-    }
-
-    func removeUnit(_ unit: Unit) {
-        if let index = units.firstIndex(where: { $0 === unit }) {
-            units.remove(at: index)
+        // Update particles
+        for particle in particles {
+            particle.update(timeStep: timeStep, in: self)
         }
     }
 }

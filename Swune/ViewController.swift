@@ -32,8 +32,11 @@ class ViewController: UIViewController {
     private var selectionView = UIImageView()
     private var world: World = .init(
         level: loadJSON("Level1"),
-        unitTypes: loadJSON("Units"),
-        buildingTypes: loadJSON("Buildings")
+        assets: Assets(
+            unitTypes: loadJSON("Units"),
+            buildingTypes: loadJSON("Buildings"),
+            explosion: loadJSON("Explosion")
+        )
     )
 
     override func viewDidLoad() {
@@ -173,6 +176,16 @@ class ViewController: UIViewController {
         while projectileViews.count > world.projectiles.count {
             projectileViews.last?.removeFromSuperview()
             projectileViews.removeLast()
+        }
+
+        // Draw particles
+        for particle in world.particles {
+            addSprite(
+                particle.imageName,
+                frame: CGRect(particle.bounds),
+                index: i
+            )
+            i += 1
         }
 
         // Clear unused sprites
