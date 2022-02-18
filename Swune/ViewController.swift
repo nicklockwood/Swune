@@ -320,6 +320,7 @@ class ViewController: UIViewController {
                 let slabType = assets.buildingTypes["slab"]!
                 let largeSlabType = assets.buildingTypes["largeSlab"]!
                 let vehicleFactoryType = assets.buildingTypes["vehicleFactory"]!
+                let harvesterType = assets.unitTypes["blue-harvester"]!
                 avatarView.menu = UIMenu(children: [
                     UIAction(
                         title: "Build Slab",
@@ -338,13 +339,13 @@ class ViewController: UIViewController {
                         image: vehicleFactoryType.avatarName.flatMap { UIImage(named: $0) }
                     ) { [weak building] _ in
                         building?.construction = Construction(type: vehicleFactoryType)
+                    },
+                    UIAction(
+                        title: "Build Harvester",
+                        image: harvesterType.avatarName.flatMap { UIImage(named: $0) }
+                    ) { [weak building] _ in
+                        building?.construction = Construction(type: harvesterType)
                     }
-    //                        UIAction(title: "Build") { [weak self] _ in
-    //                            guard let self = self else { return }
-    //                            building.construction = Construction(
-    //                                type: self.world.assets.unitTypes["blue-harvester"]!
-    //                            )
-    //                        }
                 ])
             }
         } else if let unit = world.selectedUnit {
