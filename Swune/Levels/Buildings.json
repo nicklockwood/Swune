@@ -2,7 +2,7 @@
     "constructionYard": {
         "width": 2,
         "height": 2,
-        "health": 1,
+        "health": 5,
         "idle": {
             "duration": 0,
             "framesByAngle": [

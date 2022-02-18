@@ -18,6 +18,7 @@ class World {
     var assets: Assets
     var map: Tilemap
     var elapsedTime: Double = 0
+    var screenShake: Double = 0
     var units: [Unit] = []
     var buildings: [Building] = []
     var projectiles: [Projectile] = []
@@ -72,6 +73,11 @@ class World {
         // Update particles
         for particle in particles {
             particle.update(timeStep: timeStep, in: self)
+        }
+        // Update shake
+        screenShake *= (1 - timeStep)
+        if screenShake < 0.3 {
+            screenShake = 0
         }
     }
 }

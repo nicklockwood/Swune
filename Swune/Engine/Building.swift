@@ -87,6 +87,7 @@ extension Building: Entity {
                 )
                 explosion.elapsedTime = -(Double(i) / Double(coords.count)) * 0.5
                 world.particles.append(explosion)
+                world.screenShake += 2
             }
             construction = nil
             placeholder = nil

@@ -67,6 +67,7 @@ extension Unit: Entity {
                 y: y + 0.5,
                 animation: world.assets.explosion
             ))
+            world.screenShake += maxHealth
             return
         }
         if let target = target {

@@ -135,6 +135,14 @@ class ViewController: UIViewController {
             world.update(timeStep: timeStep / worldSteps)
         }
 
+        let intensity = world.screenShake
+        if intensity > 0 {
+            let shakeX = Double.random(in: -intensity ... intensity)
+            let shakeY = Double.random(in: -intensity ... intensity)
+            view.window?.transform = CGAffineTransform(translationX: shakeX, y: shakeY)
+        } else if view.window?.transform != .identity {
+            view.window?.transform = .identity
+        }
         updateViews()
     }
 
