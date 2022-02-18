@@ -7,12 +7,23 @@
 
 import Foundation
 
-struct EntityID: RawRepresentable, Hashable {
-    var rawValue: Int
+struct EntityTypeID: RawRepresentable, Hashable, Codable {
+    var rawValue: String
+}
+
+extension EntityTypeID: ExpressibleByStringLiteral {
+    init(stringLiteral value: StringLiteralType) {
+        self.init(rawValue: value)
+    }
 }
 
 protocol EntityType {
+    var id: EntityTypeID { get }
     var avatarName: String? { get }
+}
+
+struct EntityID: RawRepresentable, Hashable, Codable {
+    var rawValue: Int
 }
 
 protocol Entity: AnyObject {

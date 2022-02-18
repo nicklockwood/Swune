@@ -13,15 +13,19 @@ private let worldTimeStep: Double = 1 / 120
 
 let playerTeam = 1
 
-func loadJSON<T: Decodable>(_ name: String) -> T {
+func loadJSON<T: Decodable>(_ name: String) throws -> T {
     let url = Bundle.main.url(
         forResource: name,
         withExtension: "json",
         subdirectory: "Levels"
     )!
-    let data = try! Data(contentsOf: url)
-    return try! JSONDecoder().decode(T.self, from: data)
+    let data = try Data(contentsOf: url)
+    return try JSONDecoder().decode(T.self, from: data)
 }
+
+let savedGameURL: URL = FileManager.default
+    .urls(for: .documentDirectory, in: .userDomainMask)[0]
+    .appendingPathComponent("quicksave.json")
 
 class ViewController: UIViewController {
     private var displayLink: CADisplayLink?
@@ -34,17 +38,19 @@ class ViewController: UIViewController {
     private let placeholderView = UIView()
     private let avatarView = AvatarView()
     private let constructionView = AvatarView()
-    private var world: World = .init(
-        level: loadJSON("Level1"),
-        assets: Assets(
-            unitTypes: loadJSON("Units"),
-            buildingTypes: loadJSON("Buildings"),
-            explosion: loadJSON("Explosion")
-        )
-    )
+    private var world: World!
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        self.restoreState()
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willResignActiveNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            self.saveState()
+        }
 
         view.backgroundColor = .black
 
@@ -303,27 +309,28 @@ class ViewController: UIViewController {
                     }
                 ])
             } else {
-                let slab = self.world.assets.buildingTypes["slab"]!
-                let largeSlab = self.world.assets.buildingTypes["largeSlab"]!
-                let vehicleFactory = self.world.assets.buildingTypes["vehicleFactory"]!
+                let assets = world.assets
+                let slabType = assets.buildingTypes["slab"]!
+                let largeSlabType = assets.buildingTypes["largeSlab"]!
+                let vehicleFactoryType = assets.buildingTypes["vehicleFactory"]!
                 avatarView.menu = UIMenu(children: [
                     UIAction(
                         title: "Build Slab",
-                        image: slab.avatarName.flatMap { UIImage(named: $0) }
+                        image: slabType.avatarName.flatMap { UIImage(named: $0) }
                     ) { [weak building] _ in
-                        building?.construction = Construction(type: slab)
+                        building?.construction = Construction(type: slabType)
                     },
                     UIAction(
                         title: "Build Large Slab",
-                        image: largeSlab.avatarName.flatMap { UIImage(named: $0) }
+                        image: largeSlabType.avatarName.flatMap { UIImage(named: $0) }
                     ) { [weak building] _ in
-                        building?.construction = Construction(type: largeSlab)
+                        building?.construction = Construction(type: largeSlabType)
                     },
                     UIAction(
                         title: "Build Vehicle Factory",
-                        image: vehicleFactory.avatarName.flatMap { UIImage(named: $0) }
+                        image: vehicleFactoryType.avatarName.flatMap { UIImage(named: $0) }
                     ) { [weak building] _ in
-                        building?.construction = Construction(type: vehicleFactory)
+                        building?.construction = Construction(type: vehicleFactoryType)
                     }
     //                        UIAction(title: "Build") { [weak self] _ in
     //                            guard let self = self else { return }
@@ -414,6 +421,37 @@ class ViewController: UIViewController {
             x: view.frame.width - constructionView.frame.width - 16,
             y: avatarView.frame.maxY + 16
         )
+    }
+
+    // MARK: Serialization
+
+    func saveState() {
+        do {
+            let data = try JSONEncoder().encode(world.state)
+            try data.write(to: savedGameURL, options: .atomic)
+        } catch {
+            print("\(error)")
+        }
+    }
+
+    func restoreState() {
+        let assets = try! Assets(
+            unitTypes: loadJSON("Units"),
+            buildingTypes: loadJSON("Buildings"),
+            explosion: loadJSON("Explosion")
+        )
+        if FileManager.default.fileExists(atPath: savedGameURL.path) {
+            do {
+                let data = try Data(contentsOf: savedGameURL)
+                let state = try JSONDecoder().decode(World.State.self, from: data)
+                world = try .init(state: state, assets: assets)
+            } catch {
+                print("\(error)")
+            }
+        }
+        if world == nil {
+            world = .init(level: try! loadJSON("Level1"), assets: assets)
+        }
     }
 }
 

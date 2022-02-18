@@ -8,6 +8,7 @@
 import Foundation
 
 struct UnitType: EntityType, Decodable {
+    var id: EntityTypeID
     var speed: Double
     var turnSpeed: Double
     var health: Double
@@ -22,8 +23,8 @@ class Unit {
     let id: EntityID
     var type: UnitType
     var x, y: Double
-    var angle: Angle = .zero
-    var team: Int = 1
+    var angle: Angle
+    var team: Int
     var range: Double = 3
     var health: Double
     var attackCooldown: Double = 1
@@ -35,12 +36,50 @@ class Unit {
         TileCoord(x: Int(x + 0.5), y: Int(y + 0.5))
     }
 
-    init(id: EntityID, type: UnitType, coord: TileCoord) {
+    init(id: EntityID, type: UnitType, team: Int, coord: TileCoord) {
         self.id = id
         self.type = type
+        self.team = team
         self.x = Double(coord.x)
         self.y = Double(coord.y)
+        self.angle = .zero
         self.health = type.health
+    }
+
+    // MARK: Serialization
+
+    struct State: Codable {
+        var id: EntityID
+        var type: EntityTypeID
+        var team: Int
+        var x, y: Double
+        var angle: Angle
+        var health: Double
+    }
+
+    var state: State {
+        .init(
+            id: id,
+            type: type.id,
+            team: team,
+            x: x,
+            y: y,
+            angle: angle,
+            health: health
+        )
+    }
+
+    init(state: State, assets: Assets) throws {
+        guard let type = assets.unitTypes[state.type] else {
+            throw AssetError.unknownUnitType(state.type)
+        }
+        self.id = state.id
+        self.type = type
+        self.team = state.team
+        self.x = state.x
+        self.y = state.y
+        self.angle = state.angle
+        self.health = state.health
     }
 }
 

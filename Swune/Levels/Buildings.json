@@ -1,5 +1,6 @@
-{
-    "constructionYard": {
+[
+    {
+        "id": "constructionYard",
         "width": 2,
         "height": 2,
         "health": 5,
@@ -10,7 +11,8 @@
             ]
         }
     },
-    "vehicleFactory": {
+    {
+        "id": "vehicleFactory",
         "width": 2,
         "height": 2,
         "health": 3,
@@ -21,7 +23,8 @@
             ]
         }
     },
-    "slab": {
+    {
+        "id": "slab",
         "width": 1,
         "height": 1,
         "health": 1,
@@ -33,7 +36,8 @@
             ]
         }
     },
-    "largeSlab": {
+    {
+        "id": "largeSlab",
         "width": 2,
         "height": 2,
         "health": 1,
@@ -45,4 +49,4 @@
             ]
         }
     }
-}
+]

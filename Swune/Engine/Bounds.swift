@@ -9,7 +9,7 @@ import Foundation
 
 struct Bounds {
     var x, y, width, height: Double
-
+    
     var coords: [TileCoord] {
         var coords = [TileCoord]()
         for y in Int(y) ..< Int(ceil(y + height)) {

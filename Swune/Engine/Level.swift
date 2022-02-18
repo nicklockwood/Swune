@@ -9,14 +9,14 @@ import Foundation
 
 struct Level: Codable {
     struct Building: Codable {
-        var type: String
+        var type: EntityTypeID
         var team: Int
         var x: Int
         var y: Int
     }
 
     struct Unit: Codable {
-        var type: String
+        var type: EntityTypeID
         var team: Int
         var x: Int
         var y: Int

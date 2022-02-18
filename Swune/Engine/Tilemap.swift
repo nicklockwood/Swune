@@ -7,7 +7,7 @@
 
 import UIKit
 
-struct TileCoord: Hashable {
+struct TileCoord: Hashable, Codable {
     var x, y: Int
 
     func distance(from coord: TileCoord) -> Double {

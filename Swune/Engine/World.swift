@@ -5,25 +5,16 @@
 //  Created by Nick Lockwood on 13/02/2022.
 //
 
-struct Assets {
-    var unitTypes: UnitTypes
-    var buildingTypes: BuildingTypes
-    var explosion: Animation
-}
-
-typealias UnitTypes = [String: UnitType]
-typealias BuildingTypes = [String: BuildingType]
-
 class World {
     private(set) var entities: [Entity?] = []
     private var indexByID: [EntityID: Int] = [:]
     private var nextID: Int = 0
     private(set) var assets: Assets
     var map: Tilemap
-    var elapsedTime: Double = 0
-    var screenShake: Double = 0
-    var projectiles: [Projectile] = []
-    var particles: [Particle] = []
+    var elapsedTime: Double
+    var screenShake: Double
+    var particles: [Particle]
+    var projectiles: [Projectile]
 
     private var selectedEntityID: EntityID?
     var selectedEntity: Entity? {
@@ -33,30 +24,32 @@ class World {
 
     init(level: Level, assets: Assets) {
         self.assets = assets
-        map = Tilemap(level: level)
+        self.map = Tilemap(level: level)
+        self.elapsedTime = 0
+        self.screenShake = 0
+        self.particles = []
+        self.projectiles = []
         level.buildings.forEach {
             guard let type = assets.buildingTypes[$0.type] else {
                 assertionFailure()
                 return
             }
+            let team = $0.team
             let coord = TileCoord(x: $0.x, y: $0.y)
-            let building = create { id in
-                Building(id: id, type: type, coord: coord)
-            }
-            building.team = $0.team
-            add(building)
+            add(create { id in
+                Building(id: id, type: type, team: team, coord: coord)
+            })
         }
         level.units.forEach {
             guard let type = assets.unitTypes[$0.type] else {
                 assertionFailure()
                 return
             }
+            let team = $0.team
             let coord = TileCoord(x: $0.x, y: $0.y)
-            let unit = create { id in
-                Unit(id: id, type: type, coord: coord)
-            }
-            unit.team = $0.team
-            add(unit)
+            add(create { id in
+                Unit(id: id, type: type, team: team, coord: coord)
+            })
         }
     }
 
@@ -90,11 +83,54 @@ class World {
             screenShake = 0
         }
     }
+
+    // MARK: Serialization
+
+    struct State: Codable {
+        var map: Tilemap
+        var elapsedTime: Double
+        var screenShake: Double
+        var buildings: [Building.State]
+        var units: [Unit.State] = []
+        var particles: [Particle.State]
+        var projectiles: [Projectile.State]
+    }
+
+    var state: State {
+        .init(
+            map: map,
+            elapsedTime: elapsedTime,
+            screenShake: screenShake,
+            buildings: buildings.map { $0.state },
+            units: units.map { $0.state },
+            particles: particles.map { $0.state },
+            projectiles: projectiles.map { $0.state }
+        )
+    }
+
+    init(state: State, assets: Assets) throws {
+        self.assets = assets
+        self.map = state.map
+        self.elapsedTime = state.elapsedTime
+        self.screenShake = state.screenShake
+        self.particles = state.particles.map {
+            Particle(state: $0, animation: assets.explosion)
+        }
+        self.projectiles = state.projectiles.map {
+            Projectile(state: $0)
+        }
+        try state.buildings.forEach {
+            try add(Building(state: $0, assets: assets))
+        }
+        try state.units.forEach {
+            try add(Unit(state: $0, assets: assets))
+        }
+    }
 }
 
 extension World {
-    func create<T: Entity>(_ constructor: (EntityID) -> T) -> T {
-        let entity = constructor(EntityID(rawValue: nextID))
+    func create<T: Entity>(_ constructor: (EntityID) throws -> T) rethrows -> T {
+        let entity = try constructor(EntityID(rawValue: nextID))
         nextID += 1
         return entity
     }

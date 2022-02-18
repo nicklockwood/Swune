@@ -12,6 +12,7 @@ enum BuildingRole: String, Decodable {
 }
 
 struct BuildingType: EntityType, Decodable {
+    var id: EntityTypeID
     var width: Int
     var height: Int
     var health: Double
@@ -26,7 +27,7 @@ struct BuildingType: EntityType, Decodable {
 class Construction {
     var type: EntityType
     var buildTime: Double = 5
-    var elapsedTime: Double = 0
+    var elapsedTime: Double
 
     var progress: Double {
         elapsedTime / buildTime
@@ -34,24 +35,78 @@ class Construction {
 
     init(type: EntityType) {
         self.type = type
+        self.elapsedTime = 0
+    }
+
+    // MARK: Serialization
+
+    struct State {
+        var type: EntityTypeID
+        var elapsedTime: Double
+    }
+
+    var state: State {
+        .init(type: type.id, elapsedTime: elapsedTime)
+    }
+
+    init(state: State, assets: Assets) throws {
+        guard let type = assets.entityType(for: state.type) else {
+            throw AssetError.unknownEntityType(state.type)
+        }
+        self.type = type
+        self.elapsedTime = state.elapsedTime
     }
 }
 
 class Building {
     let id: EntityID
     var type: BuildingType
-    var team: Int = 1
+    var team: Int
     var x, y: Int
     var health: Double
     var construction: Construction?
     var placeholder: Building?
 
-    init(id: EntityID, type: BuildingType, coord: TileCoord) {
+    init(id: EntityID, type: BuildingType, team: Int, coord: TileCoord) {
         self.id = id
         self.type = type
+        self.team = team
         self.x = coord.x
         self.y = coord.y
         self.health = type.health
+    }
+
+    // MARK: Serialization
+
+    struct State: Codable {
+        var id: EntityID
+        var type: EntityTypeID
+        var team: Int
+        var x, y: Int
+        var health: Double
+    }
+
+    var state: State {
+        .init(
+            id: id,
+            type: type.id,
+            team: team,
+            x: x,
+            y: y,
+            health: health
+        )
+    }
+
+    init(state: State, assets: Assets) throws {
+        guard let type = assets.buildingTypes[state.type] else {
+            throw AssetError.unknownBuildingType(state.type)
+        }
+        self.id = state.id
+        self.type = type
+        self.team = state.team
+        self.x = state.x
+        self.y = state.y
+        self.health = state.health
     }
 }
 
@@ -112,14 +167,14 @@ extension Building: Entity {
                     return // TODO: error
                 }
                 placeholder = world.create { id in
-                    Building(id: id, type: buildingType, coord: nearest)
+                    Building(id: id, type: buildingType, team: team, coord: nearest)
                 }
             case let unitType as UnitType:
                 guard let nearest = world.nearestFreeTile(to: bounds) else {
                     return // TODO: error
                 }
                 let unit = world.create { id in
-                    Unit(id: id, type: unitType, coord: nearest)
+                    Unit(id: id, type: unitType, team: team, coord: nearest)
                 }
                 let dx = unit.x + 0.5 - (Double(x) + Double(type.width) / 2)
                 let dy = unit.y + 0.5 - (Double(y) + Double(type.height) / 2)

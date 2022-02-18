@@ -37,6 +37,23 @@ class Projectile {
             y += (dy / distance) * step
         }
     }
+
+    // MARK: Serialization
+
+    struct State: Codable {
+        var x, y: Double
+        var target: TileCoord
+    }
+
+    var state: State {
+        .init(x: x, y: y, target: target)
+    }
+
+    init(state: State) {
+        self.x = state.x
+        self.y = state.y
+        self.target = state.target
+    }
 }
 
 extension World {
