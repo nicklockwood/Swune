@@ -138,7 +138,7 @@ class ViewController: UIViewController {
         updateViews()
     }
 
-    func addSprite(_ name: String, frame: CGRect, index: Int) {
+    func addSprite(_ name: String?, frame: CGRect, index: Int) {
         let spriteView: UIImageView
         if index >= spriteViews.count {
             spriteView = UIImageView(frame: frame)
@@ -151,7 +151,7 @@ class ViewController: UIViewController {
             spriteView.frame = frame
             spriteView.isHidden = false
         }
-        spriteView.image = UIImage(named: name)
+        spriteView.image = name.flatMap { UIImage(named: $0) }
     }
 
     func updateViews() {
@@ -289,9 +289,9 @@ class ViewController: UIViewController {
         if let building = world.selectedBuilding {
             if building.placeholder != nil || building.construction != nil {
                 avatarView.menu = UIMenu(children: [
-                    UIAction(title: "Cancel") { _ in
-                        building.construction = nil
-                        building.placeholder = nil
+                    UIAction(title: "Cancel") { [weak building] _ in
+                        building?.construction = nil
+                        building?.placeholder = nil
                     }
                 ])
             } else {
@@ -301,21 +301,21 @@ class ViewController: UIViewController {
                 avatarView.menu = UIMenu(children: [
                     UIAction(
                         title: "Build Slab",
-                        image: UIImage(named: slab.avatarName)
-                    ) { _ in
-                        building.construction = Construction(type: slab)
+                        image: slab.avatarName.flatMap { UIImage(named: $0) }
+                    ) { [weak building] _ in
+                        building?.construction = Construction(type: slab)
                     },
                     UIAction(
                         title: "Build Large Slab",
-                        image: UIImage(named: largeSlab.avatarName)
-                    ) { _ in
-                        building.construction = Construction(type: largeSlab)
+                        image: largeSlab.avatarName.flatMap { UIImage(named: $0) }
+                    ) { [weak building] _ in
+                        building?.construction = Construction(type: largeSlab)
                     },
                     UIAction(
                         title: "Build Vehicle Factory",
-                        image: UIImage(named: vehicleFactory.avatarName)
-                    ) { _ in
-                        building.construction = Construction(type: vehicleFactory)
+                        image: vehicleFactory.avatarName.flatMap { UIImage(named: $0) }
+                    ) { [weak building] _ in
+                        building?.construction = Construction(type: vehicleFactory)
                     }
     //                        UIAction(title: "Build") { [weak self] _ in
     //                            guard let self = self else { return }
@@ -340,7 +340,7 @@ class ViewController: UIViewController {
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: scrollView)
         let coord = tileCoordinate(at: location)
-        if let building = world.placeholder, building.contains(coord) {
+        if let building = world.placeholder, building.bounds.contains(coord) {
             if world.placeBuilding(building) {
                 world.placeholder = nil
             }
@@ -361,7 +361,7 @@ class ViewController: UIViewController {
             {
                 let coord = TileCoord(x: building.x, y: building.y)
                 world.moveUnit(current, to: coord)
-//                current.target = unit
+                current.target = building
             }
             world.selectedEntity = building
             updateViews()

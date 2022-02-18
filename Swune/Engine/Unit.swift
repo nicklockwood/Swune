@@ -10,14 +10,11 @@ import Foundation
 struct UnitType: EntityType, Decodable {
     var speed: Double
     var turnSpeed: Double
+    var health: Double
     var idle: Animation
 
-    var avatarName: String {
+    var avatarName: String? {
         idle.frame(angle: .init(radians: .pi), time: 0)
-    }
-
-    var maxHealth: Double {
-        1
     }
 }
 
@@ -31,7 +28,7 @@ class Unit {
     var attackCooldown: Double = 1
     var lastFired: Double = -.greatestFiniteMagnitude
     var path: [TileCoord] = []
-    weak var target: Unit?
+    weak var target: Entity?
 
     var coord: TileCoord {
         TileCoord(x: Int(x + 0.5), y: Int(y + 0.5))
@@ -41,12 +38,7 @@ class Unit {
         self.type = type
         self.x = Double(coord.x)
         self.y = Double(coord.y)
-        self.health = type.maxHealth
-    }
-
-    func distance(from coord: TileCoord) -> Double {
-        let dx = Double(coord.x) - x, dy = Double(coord.y) - y
-        return (dx * dx + dy * dy).squareRoot()
+        self.health = type.health
     }
 }
 
@@ -55,21 +47,21 @@ extension Unit: Entity {
         .init(x: x, y: y, width: 1, height: 1)
     }
 
-    var imageName: String {
+    var imageName: String? {
         type.idle.frame(angle: angle, time: 0)
     }
 
-    var avatarName: String {
+    var avatarName: String? {
         type.avatarName
     }
 
     var maxHealth: Double {
-        type.maxHealth
+        type.health
     }
 
     func update(timeStep: Double, in world: World) {
         if health <= 0 {
-            world.removeUnit(self)
+            world.remove(self)
             world.particles.append(Particle(
                 x: x + 0.5,
                 y: y + 0.5,
@@ -80,22 +72,25 @@ extension Unit: Entity {
         if let target = target {
             if target.health <= 0 {
                 self.target = nil
-            } else if distance(from: target.coord) < range {
+            } else if distance(from: target) < range {
                 path = []
                 // Attack
                 if world.elapsedTime - lastFired > attackCooldown {
-                    world.fireProjectile(from: coord, at: target.coord)
+                    world.fireProjectile(from: coord, at: target)
                     lastFired = world.elapsedTime
                 }
                 return
             } else if let destination = path.last,
                 target.distance(from: destination) < range {
                     // Carry on moving
-            } else {
+            } else if let destination = world.nearestCoord(
+                from: target.bounds,
+                to: coord
+            ) {
                 // Recalculate path
                 path = world.findPath(
                     from: coord,
-                    to: target.coord,
+                    to: destination,
                     maxDistance: .infinity
                 )
             }
@@ -157,12 +152,6 @@ extension World {
             return unit
         }
         return nil
-    }
-
-    func removeUnit(_ unit: Unit) {
-        if let index = units.firstIndex(where: { $0 === unit }) {
-            units.remove(at: index)
-        }
     }
 
     func moveUnit(_ unit: Unit, to coord: TileCoord) {

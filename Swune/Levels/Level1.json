@@ -40,6 +40,12 @@
             "x": 9,
             "y": 5
         },
+        {
+            "type": "constructionYard",
+            "team": 2,
+            "x": 9,
+            "y": 28
+        },
     ],
     "units": [
         {

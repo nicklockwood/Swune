@@ -51,7 +51,7 @@ class World {
 
     func tileIsPassable(at coord: TileCoord) -> Bool {
         map.tile(at: coord).isPassable && !buildings.contains(where: {
-            $0.contains(coord)
+            $0.bounds.contains(coord)
         })
     }
 
@@ -78,6 +78,17 @@ class World {
 
 extension World: Graph {
     typealias Node = TileCoord
+
+    func nodesAdjacentTo(_ bounds: Bounds) -> Set<Node> {
+        let coords = bounds.coords
+        var visited = Set(coords)
+        for coord in coords {
+            for node in nodesAdjacentTo(coord) where !coords.contains(node) {
+                visited.insert(node)
+            }
+        }
+        return visited
+    }
 
     func nodesAdjacentTo(_ node: TileCoord) -> [TileCoord] {
         return [

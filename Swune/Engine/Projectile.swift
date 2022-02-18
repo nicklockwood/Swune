@@ -26,8 +26,8 @@ class Projectile {
         if distance < step {
             x = Double(target.x)
             y = Double(target.y)
-            if let unit = world.pickUnit(at: target) {
-                unit.health -= damage
+            if let entity = world.pickEntity(at: target) {
+                entity.health -= damage
             }
             if let index = world.projectiles.firstIndex(where: { $0 === self }) {
                 world.projectiles.remove(at: index)
@@ -40,6 +40,10 @@ class Projectile {
 }
 
 extension World {
+    func fireProjectile(from start: TileCoord, at entity: Entity) {
+        fireProjectile(from: start, at: entity.nearestCoord(to: start))
+    }
+
     func fireProjectile(from start: TileCoord, at target: TileCoord) {
         let projectile = Projectile(
             x: Double(start.x),

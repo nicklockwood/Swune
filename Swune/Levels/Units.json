@@ -1,7 +1,8 @@
 {
     "blue-harvester": {
-        "speed": 1,
+        "speed": 2,
         "turnSpeed": 1,
+        "health": 2,
         "idle": {
             "duration": 0,
             "framesByAngle": [
@@ -19,6 +20,7 @@
     "red-harvester": {
         "speed": 1,
         "turnSpeed": 1,
+        "health": 2,
         "idle": {
             "duration": 0,
             "framesByAngle": [

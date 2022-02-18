@@ -9,6 +9,11 @@ import UIKit
 
 struct TileCoord: Hashable {
     var x, y: Int
+
+    func distance(from coord: TileCoord) -> Double {
+        let dx = Double(coord.x) - Double(x), dy = Double(coord.y) - Double(y)
+        return (dx * dx + dy * dy).squareRoot()
+    }
 }
 
 enum Tile: Character, Codable {

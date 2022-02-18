@@ -14,15 +14,12 @@ enum BuildingRole: String, Decodable {
 struct BuildingType: EntityType, Decodable {
     var width: Int
     var height: Int
+    var health: Double
     var role: BuildingRole?
     var idle: Animation
 
-    var avatarName: String {
+    var avatarName: String? {
         idle.frame(angle: .zero, time: 0)
-    }
-
-    var maxHealth: Double {
-        3
     }
 }
 
@@ -52,12 +49,7 @@ class Building {
         self.type = type
         self.x = coord.x
         self.y = coord.y
-        self.health = type.maxHealth
-    }
-
-    func contains(_ coord: TileCoord) -> Bool {
-        return coord.x >= x && coord.y >= y &&
-        coord.x < x + type.width && coord.y < y + type.height
+        self.health = type.health
     }
 }
 
@@ -71,19 +63,35 @@ extension Building: Entity {
         )
     }
 
-    var imageName: String {
+    var imageName: String? {
         type.idle.frame(angle: .zero, time: 0)
     }
 
-    var avatarName: String {
+    var avatarName: String? {
         type.avatarName
     }
 
     var maxHealth: Double {
-        type.maxHealth
+        type.health
     }
 
     func update(timeStep: Double, in world: World) {
+        if health <= 0 {
+            world.remove(self)
+            let coords = bounds.coords
+            for (i, coord) in coords.enumerated().shuffled() {
+                let explosion = Particle(
+                    x: Double(coord.x) + 0.5,
+                    y: Double(coord.y) + 0.5,
+                    animation: world.assets.explosion
+                )
+                explosion.elapsedTime = -(Double(i) / Double(coords.count)) * 0.5
+                world.particles.append(explosion)
+            }
+            construction = nil
+            placeholder = nil
+            return
+        }
         if let construction = construction {
             construction.elapsedTime += timeStep
             guard construction.progress >= 1 else {
@@ -131,7 +139,7 @@ extension World {
     }
 
     func pickBuilding(at coord: TileCoord) -> Building? {
-        for building in buildings where building.contains(coord) {
+        for building in buildings where building.bounds.contains(coord) {
             return building
         }
         return nil
@@ -218,22 +226,11 @@ private extension World {
         return possible.first
     }
 
-    func nodesAdjacentTo(_ bounds: Bounds) -> Set<Node> {
-        let coords = bounds.coords
-        var visited = Set(coords)
-        for coord in coords {
-            for node in nodesAdjacentTo(coord) where !coords.contains(node) {
-                visited.insert(node)
-            }
-        }
-        return visited
-    }
-
     func isBuildableSpace(at bounds: Bounds) -> Bool {
         bounds.coords.allSatisfy { coord in
             switch map.tile(at: coord) {
             case .stone, .slab:
-                return !buildings.contains(where: { $0.contains(coord) })
+                return !buildings.contains(where: { $0.bounds.contains(coord) })
                     && !units.contains(where: { $0.coord == coord })
             case .sand, .spice, .boulder:
                 return false
@@ -256,7 +253,7 @@ private extension World {
         bounds.coords.contains(where: { coord in
             switch map.tile(at: coord) {
             case .stone:
-                return !buildings.contains(where: { $0.contains(coord) })
+                return !buildings.contains(where: { $0.bounds.contains(coord) })
             case .slab, .sand, .spice, .boulder:
                 return false
             }

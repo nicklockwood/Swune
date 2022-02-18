@@ -12,7 +12,10 @@ struct Animation: Decodable {
     var framesByAngle: [[AnimationFrame]]
     var loopCount: Int?
 
-    func frame(angle: Angle, time: Double) -> AnimationFrame {
+    func frame(angle: Angle, time: Double) -> AnimationFrame? {
+        guard time >= 0 else {
+            return nil
+        }
         var angleIndex = Int((
             angle.radians / (2 * .pi) * Double(framesByAngle.count)
         ).rounded(.toNearestOrAwayFromZero))

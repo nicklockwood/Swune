@@ -14,7 +14,7 @@ class Particle {
         .init(x: x - 1, y: y - 1, width: 2, height: 2)
     }
 
-    var imageName: String {
+    var imageName: String? {
         animation.frame(angle: .zero, time: elapsedTime)
     }
 
