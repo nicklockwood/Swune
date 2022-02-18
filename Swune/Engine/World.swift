@@ -96,6 +96,7 @@ class World {
         var screenShake: Double
         var scrollX: Double
         var scrollY: Double
+        var selectedEntity: EntityID?
         var buildings: [Building.State]
         var units: [Unit.State] = []
         var particles: [Particle.State]
@@ -109,6 +110,7 @@ class World {
             screenShake: screenShake,
             scrollX: scrollX,
             scrollY: scrollY,
+            selectedEntity: selectedEntityID,
             buildings: buildings.map { $0.state },
             units: units.map { $0.state },
             particles: particles.map { $0.state },
@@ -123,6 +125,7 @@ class World {
         self.screenShake = state.screenShake
         self.scrollX = state.scrollX
         self.scrollY = state.scrollY
+        self.selectedEntityID = state.selectedEntity
         self.particles = state.particles.map {
             Particle(state: $0, animation: assets.explosion)
         }
