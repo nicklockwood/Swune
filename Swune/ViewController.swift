@@ -358,7 +358,7 @@ class ViewController: UIViewController {
                unit.team != playerTeam
             {
                 world.moveUnit(current, to: unit.coord)
-                current.target = unit
+                current.targetID = unit.id
             }
             world.selectedEntity = unit
             updateViews()
@@ -369,13 +369,13 @@ class ViewController: UIViewController {
             {
                 let coord = TileCoord(x: building.x, y: building.y)
                 world.moveUnit(current, to: coord)
-                current.target = building
+                current.targetID = building.id
             }
             world.selectedEntity = building
             updateViews()
         } else if let unit = world.selectedEntity as? Unit, unit.team == playerTeam {
             world.moveUnit(unit, to: coord)
-            unit.target = nil
+            unit.targetID = nil
         } else {
             world.selectedEntity = nil
             updateViews()

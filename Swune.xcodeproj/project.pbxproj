@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		010565BD27BF985D001DAE32 /* Bounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010565BC27BF985D001DAE32 /* Bounds.swift */; };
 		017097E027B9932C002ED344 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097DF27B9932C002ED344 /* AppDelegate.swift */; };
 		017097E227B9932C002ED344 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097E127B9932C002ED344 /* SceneDelegate.swift */; };
 		017097E427B9932C002ED344 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097E327B9932C002ED344 /* ViewController.swift */; };
@@ -29,6 +30,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		010565BC27BF985D001DAE32 /* Bounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bounds.swift; sourceTree = "<group>"; };
 		017097DC27B9932C002ED344 /* Swune.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Swune.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		017097DF27B9932C002ED344 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		017097E127B9932C002ED344 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -100,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				0170980B27BDA714002ED344 /* Angle.swift */,
+				010565BC27BF985D001DAE32 /* Bounds.swift */,
 				0170980727BD876C002ED344 /* Animation.swift */,
 				0170980327BC613B002ED344 /* Level.swift */,
 				017097F327B99352002ED344 /* Tilemap.swift */,
@@ -188,6 +191,7 @@
 			files = (
 				0170980827BD876C002ED344 /* Animation.swift in Sources */,
 				017097F427B99352002ED344 /* Tilemap.swift in Sources */,
+				010565BD27BF985D001DAE32 /* Bounds.swift in Sources */,
 				017097E427B9932C002ED344 /* ViewController.swift in Sources */,
 				0170981027BDD6D3002ED344 /* Particle.swift in Sources */,
 				017097E027B9932C002ED344 /* AppDelegate.swift in Sources */,

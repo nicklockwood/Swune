@@ -38,6 +38,7 @@ class Construction {
 }
 
 class Building {
+    let id: EntityID
     var type: BuildingType
     var team: Int = 1
     var x, y: Int
@@ -45,7 +46,8 @@ class Building {
     var construction: Construction?
     var placeholder: Building?
 
-    init(type: BuildingType, coord: TileCoord) {
+    init(id: EntityID, type: BuildingType, coord: TileCoord) {
+        self.id = id
         self.type = type
         self.x = coord.x
         self.y = coord.y
@@ -109,19 +111,20 @@ extension Building: Entity {
                 ) else {
                     return // TODO: error
                 }
-                placeholder = Building(
-                    type: buildingType,
-                    coord: nearest
-                )
+                placeholder = world.create { id in
+                    Building(id: id, type: buildingType, coord: nearest)
+                }
             case let unitType as UnitType:
                 guard let nearest = world.nearestFreeTile(to: bounds) else {
                     return // TODO: error
                 }
-                let unit = Unit(type: unitType, coord: nearest)
+                let unit = world.create { id in
+                    Unit(id: id, type: unitType, coord: nearest)
+                }
                 let dx = unit.x + 0.5 - (Double(x) + Double(type.width) / 2)
                 let dy = unit.y + 0.5 - (Double(y) + Double(type.height) / 2)
                 unit.angle = Angle(x: dx, y: dy) ?? .zero
-                world.units.append(unit)
+                world.add(unit)
             default:
                 assertionFailure()
             }
@@ -130,6 +133,10 @@ extension Building: Entity {
 }
 
 extension World {
+    var buildings: [Building] {
+        entities.compactMap { $0 as? Building }
+    }
+
     var selectedBuilding: Building? {
         selectedEntity as? Building
     }
@@ -140,10 +147,7 @@ extension World {
     }
 
     func pickBuilding(at coord: TileCoord) -> Building? {
-        for building in buildings where building.bounds.contains(coord) {
-            return building
-        }
-        return nil
+        pickEntity(at: coord) as? Building
     }
 
     func canPlaceBuilding(_ building: Building) -> Bool {
@@ -176,7 +180,7 @@ extension World {
                 // Apply 50% damage for not placing on slab
                 building.health /= 2
             }
-            buildings.append(building)
+            add(building)
         }
         return true
     }
@@ -190,9 +194,7 @@ private extension World {
         while let next = unvisited.popLast() {
             visited.insert(next)
             for node in nodesAdjacentTo(next) where !visited.contains(node) {
-                if tileIsPassable(at: node), !units.contains(where: {
-                    $0.coord == node
-                }) {
+                if map.tile(at: node).isPassable, pickEntity(at: node) == nil {
                     return node
                 }
                 unvisited.insert(node, at: 0)
@@ -231,8 +233,7 @@ private extension World {
         bounds.coords.allSatisfy { coord in
             switch map.tile(at: coord) {
             case .stone, .slab:
-                return !buildings.contains(where: { $0.bounds.contains(coord) })
-                    && !units.contains(where: { $0.coord == coord })
+                return pickEntity(at: coord) == nil
             case .sand, .spice, .boulder:
                 return false
             }
@@ -254,7 +255,7 @@ private extension World {
         bounds.coords.contains(where: { coord in
             switch map.tile(at: coord) {
             case .stone:
-                return !buildings.contains(where: { $0.bounds.contains(coord) })
+                return pickBuilding(at: coord) == nil
             case .slab, .sand, .spice, .boulder:
                 return false
             }

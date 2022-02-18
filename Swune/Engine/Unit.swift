@@ -19,6 +19,7 @@ struct UnitType: EntityType, Decodable {
 }
 
 class Unit {
+    let id: EntityID
     var type: UnitType
     var x, y: Double
     var angle: Angle = .zero
@@ -28,13 +29,14 @@ class Unit {
     var attackCooldown: Double = 1
     var lastFired: Double = -.greatestFiniteMagnitude
     var path: [TileCoord] = []
-    weak var target: Entity?
+    var targetID: EntityID?
 
     var coord: TileCoord {
         TileCoord(x: Int(x + 0.5), y: Int(y + 0.5))
     }
 
-    init(type: UnitType, coord: TileCoord) {
+    init(id: EntityID, type: UnitType, coord: TileCoord) {
+        self.id = id
         self.type = type
         self.x = Double(coord.x)
         self.y = Double(coord.y)
@@ -70,9 +72,9 @@ extension Unit: Entity {
             world.screenShake += maxHealth
             return
         }
-        if let target = target {
+        if let target = world.get(targetID) {
             if target.health <= 0 {
-                self.target = nil
+                targetID = nil
             } else if distance(from: target) < range {
                 path = []
                 // Attack
@@ -144,15 +146,16 @@ extension Unit: Entity {
 }
 
 extension World {
+    var units: [Unit] {
+        entities.compactMap { $0 as? Unit }
+    }
+
     var selectedUnit: Unit? {
         selectedEntity as? Unit
     }
 
     func pickUnit(at coord: TileCoord) -> Unit? {
-        for unit in units where unit.coord == coord {
-            return unit
-        }
-        return nil
+        pickEntity(at: coord) as? Unit
     }
 
     func moveUnit(_ unit: Unit, to coord: TileCoord) {
@@ -190,7 +193,7 @@ extension World {
 
     func unit(_ unit: Unit, canMoveTo coord: TileCoord) -> Bool {
         return tileIsPassable(at: coord) && !units.contains(where: {
-            $0 !== unit && $0.coord == coord && $0.health > 0
+            $0 !== unit && $0.coord == coord
         })
     }
 }
