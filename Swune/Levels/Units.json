@@ -4,6 +4,7 @@
         "speed": 2,
         "turnSpeed": 1,
         "health": 2,
+        "role": "harvester",
         "idle": {
             "duration": 0,
             "framesByAngle": [
@@ -23,6 +24,7 @@
         "speed": 1,
         "turnSpeed": 1,
         "health": 2,
+        "role": "harvester",
         "idle": {
             "duration": 0,
             "framesByAngle": [

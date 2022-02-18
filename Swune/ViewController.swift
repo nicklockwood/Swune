@@ -44,7 +44,15 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.restoreState()
+        let assets = try! Assets(
+            unitTypes: loadJSON("Units"),
+            buildingTypes: loadJSON("Buildings"),
+            explosion: loadJSON("Explosion")
+        )
+        self.restoreState(with: assets)
+        if world == nil {
+            world = .init(level: try! loadJSON("Level1"), assets: assets)
+        }
         NotificationCenter.default.addObserver(
             forName: UIApplication.willResignActiveNotification,
             object: nil,
@@ -260,12 +268,12 @@ class ViewController: UIViewController {
         }
 
         // Draw placeholder
-        if let placeholder = world.placeholder {
-            var bounds = placeholder.bounds
+        if let building = world.building {
+            var bounds = building.bounds
             bounds.x += placeholderDelta.x
             bounds.y += placeholderDelta.y
             placeholderView.frame = CGRect(bounds)
-            if world.canPlaceBuilding(placeholder, at: bounds) {
+            if world.canPlaceBuilding(building, at: bounds) {
                 placeholderView.backgroundColor = .green.withAlphaComponent(0.5)
             } else {
                 placeholderView.backgroundColor = .red.withAlphaComponent(0.5)
@@ -308,18 +316,19 @@ class ViewController: UIViewController {
 
         // Update menu
         if let building = world.selectedBuilding {
-            if building.placeholder != nil || building.construction != nil {
+            if building.building != nil || building.construction != nil {
                 avatarView.menu = UIMenu(children: [
                     UIAction(title: "Cancel") { [weak building] _ in
                         building?.construction = nil
-                        building?.placeholder = nil
+                        building?.building = nil
                     }
                 ])
             } else {
                 let assets = world.assets
                 let slabType = assets.buildingTypes["slab"]!
                 let largeSlabType = assets.buildingTypes["largeSlab"]!
-                let vehicleFactoryType = assets.buildingTypes["vehicleFactory"]!
+                let factoryType = assets.buildingTypes["vehicleFactory"]!
+                let refineryType = assets.buildingTypes["refinery"]!
                 let harvesterType = assets.unitTypes["blue-harvester"]!
                 avatarView.menu = UIMenu(children: [
                     UIAction(
@@ -335,10 +344,16 @@ class ViewController: UIViewController {
                         building?.construction = Construction(type: largeSlabType)
                     },
                     UIAction(
-                        title: "Build Vehicle Factory",
-                        image: vehicleFactoryType.avatarName.flatMap { UIImage(named: $0) }
+                        title: "Build Factory",
+                        image: factoryType.avatarName.flatMap { UIImage(named: $0) }
                     ) { [weak building] _ in
-                        building?.construction = Construction(type: vehicleFactoryType)
+                        building?.construction = Construction(type: factoryType)
+                    },
+                    UIAction(
+                        title: "Build Refinery",
+                        image: refineryType.avatarName.flatMap { UIImage(named: $0) }
+                    ) { [weak building] _ in
+                        building?.construction = Construction(type: refineryType)
                     },
                     UIAction(
                         title: "Build Harvester",
@@ -363,26 +378,27 @@ class ViewController: UIViewController {
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: scrollView)
         let coord = tileCoordinate(at: location)
-        if let building = world.placeholder, building.bounds.contains(coord) {
+        if let building = world.building, building.bounds.contains(coord) {
             _ = world.placeBuilding(building)
         } else if let unit = world.pickUnit(at: coord) {
             if let current = world.selectedEntity as? Unit,
                current.team == playerTeam,
                unit.team != playerTeam
             {
-                world.moveUnit(current, to: unit.coord)
                 current.target = unit.id
             }
             world.selectedEntity = unit
             updateViews()
         } else if let building = world.pickBuilding(at: coord) {
             if let current = world.selectedEntity as? Unit,
-               current.team == playerTeam,
-               building.team != playerTeam
+               current.team == playerTeam
             {
                 let coord = TileCoord(x: building.x, y: building.y)
-                world.moveUnit(current, to: coord)
-                current.target = building.id
+                if building.team != playerTeam {
+                    current.target = building.id
+                } else if world.unit(current, canMoveTo: coord) {
+                    world.moveUnit(current, to: coord)
+                }
             }
             world.selectedEntity = building
             updateViews()
@@ -398,7 +414,7 @@ class ViewController: UIViewController {
     private var lastDragLocation: CGPoint = .zero
     private var placeholderDelta: (x: Double, y: Double) = (0, 0)
     @objc private func didDrag(_ gesture: UIPanGestureRecognizer) {
-        guard let placeholder = world.placeholder else { return }
+        guard let placeholder = world.building else { return }
         let location = gesture.location(in: scrollView)
         switch gesture.state {
         case .began:
@@ -440,12 +456,7 @@ class ViewController: UIViewController {
         }
     }
 
-    func restoreState() {
-        let assets = try! Assets(
-            unitTypes: loadJSON("Units"),
-            buildingTypes: loadJSON("Buildings"),
-            explosion: loadJSON("Explosion")
-        )
+    func restoreState(with assets: Assets) {
         if FileManager.default.fileExists(atPath: savedGameURL.path) {
             do {
                 let data = try Data(contentsOf: savedGameURL)
@@ -454,10 +465,11 @@ class ViewController: UIViewController {
                 scrollPosition = CGPoint(x: world.scrollX, y: world.scrollY)
             } catch {
                 print("\(error)")
+                try? FileManager.default.moveItem(
+                    at: savedGameURL,
+                    to: savedGameURL.appendingPathExtension("backup")
+                )
             }
-        }
-        if world == nil {
-            world = .init(level: try! loadJSON("Level1"), assets: assets)
         }
     }
 }
@@ -486,7 +498,8 @@ extension Tile {
         case .sand: return "sand"
         case .slab: return "slab"
         case .stone: return "stone"
-        case .spice: return "heavy-spice"
+        case .spice: return "spice"
+        case .heavySpice: return "heavy-spice"
         case .boulder: return nil
         }
     }

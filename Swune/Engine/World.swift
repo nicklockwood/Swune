@@ -18,6 +18,13 @@ class World {
     var particles: [Particle]
     var projectiles: [Projectile]
 
+    private(set) lazy var tileIsPassable: (TileCoord) -> Bool =
+        { [weak self] coord in
+            guard let self = self else { return false }
+            return self.map.tile(at: coord).isPassable &&
+                self.pickBuilding(at: coord) == nil
+        }
+
     private var selectedEntityID: EntityID?
     var selectedEntity: Entity? {
         get { get(selectedEntityID) }
@@ -57,14 +64,16 @@ class World {
         }
     }
 
+    func nearestCoord(in bounds: Bounds, to coord: TileCoord) -> TileCoord? {
+        bounds.coords.min(by: {
+            $0.distance(from: coord) < $1.distance(from: coord)
+        })
+    }
+
     func nearestCoord(from bounds: Bounds, to coord: TileCoord) -> TileCoord? {
         nodesAdjacentTo(bounds).min(by: {
             $0.distance(from: coord) < $1.distance(from: coord)
         })
-    }
-    
-    func tileIsPassable(at coord: TileCoord) -> Bool {
-        map.tile(at: coord).isPassable && pickBuilding(at: coord) == nil
     }
 
     func update(timeStep: Double) {
@@ -143,8 +152,8 @@ class World {
 
 extension World {
     func create<T: Entity>(_ constructor: (EntityID) throws -> T) rethrows -> T {
+        nextID += 1 // Do this first to avoid problems with reentrancy
         let entity = try constructor(EntityID(rawValue: nextID))
-        nextID += 1
         return entity
     }
 
@@ -184,6 +193,18 @@ extension World {
 extension World: Graph {
     typealias Node = TileCoord
 
+    func findPath(
+        from start: Node,
+        to end: Node,
+        maxDistance: Double,
+        canPass: @escaping (TileCoord) -> Bool
+    ) -> [Node] {
+        let oldFn = tileIsPassable
+        tileIsPassable = canPass
+        defer { tileIsPassable = oldFn }
+        return findPath(from: start, to: end, maxDistance: maxDistance)
+    }
+
     func nodesAdjacentTo(_ bounds: Bounds) -> Set<Node> {
         let coords = bounds.coords
         var visited = Set(coords)
@@ -212,9 +233,9 @@ extension World: Graph {
 
     func nodesConnectedTo(_ node: TileCoord) -> [TileCoord] {
         nodesAdjacentTo(node).filter {
-            tileIsPassable(at: $0) &&
-                tileIsPassable(at: Node(x: $0.x, y: node.y)) &&
-                tileIsPassable(at: Node(x: node.x, y: $0.y))
+            tileIsPassable($0) &&
+                tileIsPassable(Node(x: $0.x, y: node.y)) &&
+                tileIsPassable(Node(x: node.x, y: $0.y))
         }
     }
 

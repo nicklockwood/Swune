@@ -18,8 +18,9 @@ struct TileCoord: Hashable, Codable {
 
 enum Tile: Character, Codable {
     case sand = " "
-    case stone = "1"
     case spice = "2"
+    case heavySpice = "5"
+    case stone = "1"
     case boulder = "3"
     case slab = "4"
 
@@ -30,7 +31,7 @@ enum Tile: Character, Codable {
 
 struct Tilemap: Codable {
     private(set) var width, height: Int
-    private var tiles: [Tile] = []
+    private(set) var tiles: [Tile] = []
 
     init(level: Level) {
         // Set tiles

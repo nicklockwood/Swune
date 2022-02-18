@@ -7,12 +7,21 @@
 
 import Foundation
 
+enum UnitRole: String, Decodable {
+    case `default`
+    case harvester
+}
+
 struct UnitType: EntityType, Decodable {
     var id: EntityTypeID
     var speed: Double
     var turnSpeed: Double
     var health: Double
+    var role: UnitRole?
     var idle: Animation
+    var harvestingTime: Double?
+    var spiceCapacity: Int?
+    var attackCooldown: Double?
 
     var avatarName: String? {
         idle.frame(angle: .init(radians: .pi), time: 0)
@@ -27,8 +36,10 @@ class Unit {
     var team: Int
     var range: Double = 3
     var health: Double
-    var attackCooldown: Double = 1
-    var lastFired: Double = -.greatestFiniteMagnitude
+    var elapsedTime: Double
+    var spice: Int
+    var isHarvesting: Bool
+    var lastFired: Double
     var path: [TileCoord] = []
     var target: EntityID?
 
@@ -36,14 +47,50 @@ class Unit {
         TileCoord(x: Int(x + 0.5), y: Int(y + 0.5))
     }
 
-    init(id: EntityID, type: UnitType, team: Int, coord: TileCoord) {
+    var role: UnitRole {
+        type.role ?? .default
+    }
+
+    init(id: EntityID, type: UnitType, team: Int, coord: TileCoord?) {
         self.id = id
         self.type = type
         self.team = team
-        self.x = Double(coord.x)
-        self.y = Double(coord.y)
+        self.x = Double(coord?.x ?? 0)
+        self.y = Double(coord?.y ?? 0)
         self.angle = .zero
         self.health = type.health
+        self.elapsedTime = 0
+        self.spice = 0
+        self.isHarvesting = false
+        self.lastFired = -.greatestFiniteMagnitude
+    }
+
+    func canEnterBuilding(_ building: Building) -> Bool {
+        switch building.role {
+        case .refinery:
+            return role == .harvester &&
+                building.team == team &&
+                building.unit == nil
+        case .slab:
+            return true
+        case .default:
+            return false
+        }
+    }
+
+    func findPath(to end: TileCoord, in world: World) -> [TileCoord] {
+        switch role {
+        case .harvester:
+            return world.findPath(
+                from: coord,
+                to: end,
+                maxDistance: .infinity
+            ) { coord in
+                world.unit(self, canMoveTo: coord)
+            }
+        case .default:
+            return world.findPath(from: coord, to: end, maxDistance: .infinity)
+        }
     }
 
     // MARK: Serialization
@@ -56,6 +103,10 @@ class Unit {
         var angle: Angle
         var health: Double
         var target: EntityID?
+        var elapsedTime: Double
+        var spice: Int
+        var isHarvesting: Bool
+        var lastFired: Double
     }
 
     var state: State {
@@ -67,7 +118,11 @@ class Unit {
             y: y,
             angle: angle,
             health: health,
-            target: target
+            target: target,
+            elapsedTime: elapsedTime,
+            spice: spice,
+            isHarvesting: isHarvesting,
+            lastFired: lastFired
         )
     }
 
@@ -83,6 +138,10 @@ class Unit {
         self.angle = state.angle
         self.health = state.health
         self.target = state.target
+        self.elapsedTime = state.elapsedTime
+        self.spice = state.spice
+        self.isHarvesting = state.isHarvesting
+        self.lastFired = state.lastFired
     }
 }
 
@@ -104,6 +163,8 @@ extension Unit: Entity {
     }
 
     func update(timeStep: Double, in world: World) {
+        elapsedTime += timeStep
+        // Handle damage
         if health <= 0 {
             world.remove(self)
             world.particles.append(Particle(
@@ -114,13 +175,14 @@ extension Unit: Entity {
             world.screenShake += maxHealth
             return
         }
+        // Attack target
         if let target = world.get(target) {
             if target.health <= 0 {
                 self.target = nil
             } else if distance(from: target) < range {
                 path = []
                 // Attack
-                if world.elapsedTime - lastFired > attackCooldown {
+                if world.elapsedTime - lastFired > type.attackCooldown ?? 1 {
                     world.fireProjectile(from: coord, at: target)
                     lastFired = world.elapsedTime
                 }
@@ -133,18 +195,18 @@ extension Unit: Entity {
                 to: coord
             ) {
                 // Recalculate path
-                path = world.findPath(
-                    from: coord,
-                    to: destination,
-                    maxDistance: .infinity
-                )
+                path = findPath(to: destination, in: world)
             }
         }
+        // Follow path
         if let next = path.first {
             guard world.unit(self, canMoveTo: next) else {
-                if let unit = world.pickUnit(at: next), world.moveUnitAside(unit) {
+                if let unit = world.pickUnit(at: next),
+                   unit.team == team,
+                   world.moveUnitAside(unit)
+                {
                     return
-                } else if !world.moveUnitAside(self) {
+                } else {
                     path = []
                 }
                 return
@@ -179,10 +241,73 @@ extension Unit: Entity {
                 x += (dx / distance) * step
                 y += (dy / distance) * step
             }
-
-        } else if !world.tileIsPassable(at: coord) {
-            _ = world.moveUnitAside(self)
-            return
+        }
+        // Role-specific logic
+        switch role {
+        case .harvester:
+            // Enter refinery
+            if let building = world.pickBuilding(at: coord) {
+                if building.team == team {
+                    building.unit = self
+                    world.remove(self)
+                } else {
+                    assertionFailure()
+                }
+            }
+            guard path.isEmpty else {
+                return
+            }
+            let capacity = type.spiceCapacity ?? 5
+            if spice < capacity {
+                if world.map.tile(at: coord).isSpice {
+                    // Harvest
+                    if !isHarvesting {
+                        elapsedTime = 0
+                        isHarvesting = true
+                    }
+                    if elapsedTime >= type.harvestingTime ?? 5 {
+                        elapsedTime = 0
+                        var tile = world.map.tile(at: coord)
+                        spice += tile.harvest()
+                        world.map.setTile(tile, at: coord)
+                    }
+                } else if world.map.tiles.contains(where: { $0.isSpice }) {
+                    // Seek spice
+                    isHarvesting = false
+                    path = world.findPath(from: coord, to: { coord in
+                        world.map.tile(at: coord).isSpice &&
+                            world.unit(self, canMoveTo: coord)
+                    }, maxDistance: .infinity)
+                }
+            } else {
+                isHarvesting = false
+            }
+            if path.isEmpty, !isHarvesting, spice > 0 {
+                // Return to refinery
+                isHarvesting = false
+                spice = capacity
+                var nearest: Building?
+                var distance = Double.infinity
+                for building in world.buildings where
+                    building.role == .refinery && building.team == team
+                {
+                    let d = self.distance(from: building)
+                    if d < distance {
+                        nearest = building
+                        distance = d
+                    }
+                }
+                if let building = nearest, building.unit == nil {
+                    if let destination = world.nearestCoord(
+                        in: building.bounds,
+                        to: coord
+                    ) {
+                        path = findPath(to: destination, in: world)
+                    }
+                }
+            }
+        case .default:
+            break
         }
     }
 }
@@ -197,19 +322,23 @@ extension World {
     }
 
     func pickUnit(at coord: TileCoord) -> Unit? {
-        pickEntity(at: coord) as? Unit
+        for case let unit as Unit in entities
+            where unit.bounds.contains(coord)
+        {
+            return unit
+        }
+        return nil
     }
 
     func moveUnit(_ unit: Unit, to coord: TileCoord) {
-        let path = findPath(
-            from: unit.coord,
-            to: coord,
-            maxDistance: .infinity
-        )
+        let path = unit.findPath(to: coord, in: self)
         unit.path = (unit.path.first.map { [$0] } ?? []) + path
     }
 
     func moveUnitAside(_ unit: Unit) -> Bool {
+        if unit.isHarvesting {
+            return false
+        }
         guard let target = nodesConnectedTo(unit.coord).first(where: { node in
             self.unit(unit, canMoveTo: node) && !units.contains(where: {
                 $0 !== unit && ($0.path.first == node || $0.path.last == node)
@@ -234,8 +363,41 @@ extension World {
     }
 
     func unit(_ unit: Unit, canMoveTo coord: TileCoord) -> Bool {
-        return tileIsPassable(at: coord) && !units.contains(where: {
-            $0 !== unit && $0.coord == coord
-        })
+        guard map.tile(at: coord).isPassable else {
+            return false
+        }
+        guard let building = pickBuilding(at: coord) else {
+            if let hit = pickUnit(at: coord), hit !== unit {
+                return false
+            }
+            return true
+        }
+        return unit.canEnterBuilding(building)
+
+    }
+}
+
+extension Tile {
+    var isSpice: Bool {
+        switch self {
+        case .spice, .heavySpice:
+            return true
+        case .slab, .boulder, .sand, .stone:
+            return false
+        }
+    }
+
+    mutating func harvest() -> Int {
+        switch self {
+        case .heavySpice:
+            self = .spice
+            return 1
+        case .spice:
+            self = .sand
+            return 1
+        case .slab, .boulder, .sand, .stone:
+            assertionFailure()
+            return 0
+        }
     }
 }

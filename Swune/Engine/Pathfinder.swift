@@ -85,6 +85,47 @@ public extension Graph {
         return []
     }
 
+    func findPath(
+        from start: Node,
+        to end: @escaping (Node) -> Bool,
+        maxDistance: Double
+    ) -> [Node] {
+        var visited = Set([start])
+        var paths = [Path(
+            head: start,
+            tail: nil,
+            stepDistance: 0,
+            remaining: 0
+        )]
+
+        while let path = paths.popLast() {
+            // Finish if goal reached
+            if end(path.head) {
+                return path.nodes
+            }
+
+            // Get connected nodes
+            for node in nodesConnectedTo(path.head) where !visited.contains(node) {
+                visited.insert(node)
+                let next = Path(
+                    head: node,
+                    tail: path,
+                    stepDistance: stepDistance(from: path.head, to: node),
+                    remaining: 0
+                )
+                // Skip this node if max distance exceeded
+                if next.totalDistance > maxDistance {
+                    break
+                }
+                // Insert new paths at start
+                paths.insert(next, at: 0)
+            }
+        }
+
+        // Unreachable
+        return []
+    }
+
     func floodFill(from start: Node, threshold: Double) -> Set<Node> {
         var visited = Set([start])
         var unvisited = [start]

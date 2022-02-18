@@ -7,8 +7,38 @@
         "idle": {
             "duration": 0,
             "framesByAngle": [
-                ["spice-storage"],
+                ["silo"],
             ]
+        }
+    },
+    {
+        "id": "refinery",
+        "width": 3,
+        "height": 2,
+        "health": 5,
+        "role": "refinery",
+        "unit": "blue-harvester",
+        "idle": {
+            "duration": 2,
+            "framesByAngle": [[
+                "refinery1",
+                "refinery2",
+                "refinery3",
+                "refinery4",
+                "refinery5",
+                "refinery6"
+            ]]
+        },
+        "active": {
+            "duration": 1,
+            "framesByAngle": [[
+                "refinery-active1",
+                "refinery-active2",
+                "refinery-active3",
+                "refinery-active4",
+                "refinery-active5",
+                "refinery-active6"
+            ]]
         }
     },
     {
@@ -19,7 +49,7 @@
         "idle": {
             "duration": 0,
             "framesByAngle": [
-                ["spice-storage"],
+                ["silo"],
             ]
         }
     },

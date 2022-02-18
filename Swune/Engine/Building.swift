@@ -8,7 +8,9 @@
 import Foundation
 
 enum BuildingRole: String, Decodable {
+    case `default`
     case slab
+    case refinery
 }
 
 struct BuildingType: EntityType, Decodable {
@@ -18,6 +20,8 @@ struct BuildingType: EntityType, Decodable {
     var health: Double
     var role: BuildingRole?
     var idle: Animation
+    var active: Animation?
+    var unit: EntityTypeID?
 
     var avatarName: String? {
         idle.frame(angle: .zero, time: 0)
@@ -64,8 +68,16 @@ class Building {
     var team: Int
     var x, y: Int
     var health: Double
+    var elapsedTime: Double
     var construction: Construction?
-    var placeholder: Building?
+    var building: Building?
+    var unit: Unit? {
+        didSet { elapsedTime = 0 }
+    }
+
+    var role: BuildingRole {
+        type.role ?? .default
+    }
 
     init(id: EntityID, type: BuildingType, team: Int, coord: TileCoord) {
         self.id = id
@@ -74,6 +86,9 @@ class Building {
         self.x = coord.x
         self.y = coord.y
         self.health = type.health
+        self.elapsedTime = 0
+        self.building = nil
+        self.unit = nil
     }
 
     // MARK: Serialization
@@ -84,7 +99,10 @@ class Building {
         var team: Int
         var x, y: Int
         var health: Double
+        var elapsedTime: Double
         var construction: Construction.State?
+        var buildings: [Building.State]
+        var units: [Unit.State]
     }
 
     var state: State {
@@ -95,7 +113,10 @@ class Building {
             x: x,
             y: y,
             health: health,
-            construction: construction?.state
+            elapsedTime: elapsedTime,
+            construction: construction?.state,
+            buildings: building.map { [$0.state] } ?? [],
+            units: unit.map { [$0.state] } ?? []
         )
     }
 
@@ -109,8 +130,15 @@ class Building {
         self.x = state.x
         self.y = state.y
         self.health = state.health
+        self.elapsedTime = state.elapsedTime
         self.construction = try state.construction.flatMap {
             try Construction(state: $0, assets: assets)
+        }
+        self.building = try state.buildings.last.map {
+            try Building(state: $0, assets: assets)
+        }
+        self.unit = try state.units.last.map {
+            try Unit(state: $0, assets: assets)
         }
     }
 }
@@ -126,7 +154,10 @@ extension Building: Entity {
     }
 
     var imageName: String? {
-        type.idle.frame(angle: .zero, time: 0)
+        if unit != nil, let active = type.active {
+            return active.frame(angle: .zero, time: elapsedTime)
+        }
+        return type.idle.frame(angle: .zero, time: elapsedTime)
     }
 
     var avatarName: String? {
@@ -138,6 +169,8 @@ extension Building: Entity {
     }
 
     func update(timeStep: Double, in world: World) {
+        elapsedTime += timeStep
+        // Handle damage
         if health <= 0 {
             world.remove(self)
             let coords = bounds.coords
@@ -152,42 +185,69 @@ extension Building: Entity {
                 world.screenShake += 2
             }
             construction = nil
-            placeholder = nil
+            building = nil
             return
         }
+        // Handle construction
         if let construction = construction {
-            construction.elapsedTime = min(
-                construction.buildTime,
-                construction.elapsedTime + timeStep
-            )
-            if construction.progress < 1 || placeholder != nil {
+            construction.elapsedTime += timeStep
+            guard construction.progress >= 1 else {
                 return
             }
+            self.construction = nil
             switch construction.type {
             case let buildingType as BuildingType:
                 guard let nearest = world.nearestFreeRect(
                     width: buildingType.width,
                     height: buildingType.height,
-                    to: bounds
+                    to: bounds,
+                    for: buildingType.role ?? .default
                 ) else {
                     return // TODO: error
                 }
-                placeholder = world.create { id in
-                    Building(id: id, type: buildingType, team: team, coord: nearest)
+                building = world.create { id in
+                    let building = Building(
+                        id: id,
+                        type: buildingType,
+                        team: team,
+                        coord: nearest
+                    )
+                    if let typeID = building.type.unit {
+                        if let unitType = world.assets.unitTypes[typeID] {
+                            building.unit = world.create { id in
+                                Unit(id: id, type: unitType, team: team, coord: nil)
+                            }
+                        } else {
+                            assertionFailure()
+                        }
+                    }
+                    return building
                 }
             case let unitType as UnitType:
-                guard let nearest = world.nearestFreeTile(to: bounds) else {
-                    return // TODO: error
-                }
                 let unit = world.create { id in
-                    Unit(id: id, type: unitType, team: team, coord: nearest)
+                    Unit(id: id, type: unitType, team: team, coord: nil)
                 }
-                let dx = unit.x + 0.5 - (Double(x) + Double(type.width) / 2)
-                let dy = unit.y + 0.5 - (Double(y) + Double(type.height) / 2)
-                unit.angle = Angle(x: dx, y: dy) ?? .zero
-                world.add(unit)
-                self.construction = nil
+                world.spawnUnit(unit, from: bounds)
             default:
+                assertionFailure()
+            }
+        }
+        // Role-specific logic
+        if let unit = unit {
+            switch unit.role {
+            case .harvester:
+                unit.path = []
+                let unloadingTimeStep = type.active?.duration ?? 1
+                if elapsedTime >= unloadingTimeStep {
+                    unit.spice -= 1
+                    elapsedTime -= unloadingTimeStep
+                }
+                if unit.spice <= 0 {
+                    unit.spice = 0
+                    world.spawnUnit(unit, from: bounds)
+                    self.unit = nil
+                }
+            case .default:
                 assertionFailure()
             }
         }
@@ -203,12 +263,29 @@ extension World {
         selectedEntity as? Building
     }
 
-    var placeholder: Building? {
-        selectedBuilding?.placeholder
+    var building: Building? {
+        selectedBuilding?.building
+    }
+
+    func spawnUnit(_ unit: Unit, from bounds: Bounds) {
+        guard let nearest = nearestFreeTile(to: bounds) else {
+            return // TODO: error
+        }
+        unit.x = Double(nearest.x)
+        unit.y = Double(nearest.y)
+        let dx = unit.x + 0.5 - (bounds.x + bounds.width / 2)
+        let dy = unit.y + 0.5 - (bounds.y + bounds.height / 2)
+        unit.angle = Angle(x: dx, y: dy) ?? .zero
+        add(unit)
     }
 
     func pickBuilding(at coord: TileCoord) -> Building? {
-        pickEntity(at: coord) as? Building
+        for case let building as Building in entities
+            where building.bounds.contains(coord)
+        {
+            return building
+        }
+        return nil
     }
 
     func canPlaceBuilding(_ building: Building) -> Bool {
@@ -216,11 +293,14 @@ extension World {
     }
 
     func canPlaceBuilding(_ building: Building, at bounds: Bounds) -> Bool {
-        switch building.type.role {
+        guard isBuildableSpace(at: bounds, for: building.role) else {
+            return false
+        }
+        switch building.role {
         case .slab:
-            return canPlaceSlab(at: bounds)
-        default:
-            return canPlaceBuilding(at: bounds)
+            return true
+        case .refinery, .default:
+            return isNextToBuilding(at: bounds)
         }
     }
 
@@ -228,13 +308,14 @@ extension World {
         guard canPlaceBuilding(building) else {
             return false
         }
-        if building.type.role == .slab {
+        switch building.role {
+        case .slab:
             for coord in building.bounds.coords {
                 if map.tile(at: coord) == .stone {
                     map.setTile(.slab, at: coord)
                 }
             }
-        } else {
+        case .refinery, .default:
             if building.bounds.coords.contains(where: {
                 map.tile(at: $0) != .slab
             }) {
@@ -244,9 +325,9 @@ extension World {
             add(building)
         }
         if let selectedBuilding = selectedBuilding,
-           selectedBuilding.placeholder === building
+           selectedBuilding.building === building
         {
-            selectedBuilding.placeholder = nil
+            selectedBuilding.building = nil
             selectedBuilding.construction = nil
         }
         return true
@@ -270,7 +351,12 @@ private extension World {
         return nil
     }
 
-    func nearestFreeRect(width: Int, height: Int, to bounds: Bounds) -> TileCoord? {
+    func nearestFreeRect(
+        width: Int,
+        height: Int,
+        to bounds: Bounds,
+        for role: BuildingRole
+    ) -> TileCoord? {
         let coords = bounds.coords
         var visited = Set(coords)
         var unvisited = coords
@@ -285,7 +371,7 @@ private extension World {
                     height: Double(height)
                 )
                 if isNextToBuilding(at: bounds) {
-                    if isBuildableSpace(at: bounds) {
+                    if isBuildableSpace(at: bounds, for: role) {
                         return node
                     }
                     unvisited.insert(node, at: 0)
@@ -296,13 +382,25 @@ private extension World {
         return possible.first
     }
 
-    func isBuildableSpace(at bounds: Bounds) -> Bool {
-        bounds.coords.allSatisfy { coord in
-            switch map.tile(at: coord) {
-            case .stone, .slab:
-                return pickEntity(at: coord) == nil
-            case .sand, .spice, .boulder:
-                return false
+    func isBuildableSpace(at bounds: Bounds, for role: BuildingRole) -> Bool {
+        switch role {
+        case .slab:
+            return bounds.coords.contains(where: { coord in
+                switch map.tile(at: coord) {
+                case .stone:
+                    return true
+                case .slab, .sand, .spice, .heavySpice, .boulder:
+                    return false
+                }
+            })
+        case .refinery, .default:
+            return bounds.coords.allSatisfy { coord in
+                switch map.tile(at: coord) {
+                case .stone, .slab:
+                    return pickEntity(at: coord) == nil
+                case .sand, .spice, .heavySpice, .boulder:
+                    return false
+                }
             }
         }
     }
@@ -311,21 +409,6 @@ private extension World {
         let adjacentNodes = nodesAdjacentTo(bounds)
         return buildings.contains(where: { building in
             !adjacentNodes.isDisjoint(with: building.bounds.coords)
-        })
-    }
-
-    func canPlaceBuilding(at bounds: Bounds) -> Bool {
-        isBuildableSpace(at: bounds) && isNextToBuilding(at: bounds)
-    }
-
-    func canPlaceSlab(at bounds: Bounds) -> Bool {
-        bounds.coords.contains(where: { coord in
-            switch map.tile(at: coord) {
-            case .stone:
-                return pickBuilding(at: coord) == nil
-            case .slab, .sand, .spice, .boulder:
-                return false
-            }
         })
     }
 }
