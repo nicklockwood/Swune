@@ -13,6 +13,8 @@ class World {
     var map: Tilemap
     var elapsedTime: Double
     var screenShake: Double
+    var scrollX: Double
+    var scrollY: Double
     var particles: [Particle]
     var projectiles: [Projectile]
 
@@ -27,6 +29,8 @@ class World {
         self.map = Tilemap(level: level)
         self.elapsedTime = 0
         self.screenShake = 0
+        self.scrollX = 0
+        self.scrollY = 0
         self.particles = []
         self.projectiles = []
         level.buildings.forEach {
@@ -90,6 +94,8 @@ class World {
         var map: Tilemap
         var elapsedTime: Double
         var screenShake: Double
+        var scrollX: Double
+        var scrollY: Double
         var buildings: [Building.State]
         var units: [Unit.State] = []
         var particles: [Particle.State]
@@ -101,6 +107,8 @@ class World {
             map: map,
             elapsedTime: elapsedTime,
             screenShake: screenShake,
+            scrollX: scrollX,
+            scrollY: scrollY,
             buildings: buildings.map { $0.state },
             units: units.map { $0.state },
             particles: particles.map { $0.state },
@@ -113,6 +121,8 @@ class World {
         self.map = state.map
         self.elapsedTime = state.elapsedTime
         self.screenShake = state.screenShake
+        self.scrollX = state.scrollX
+        self.scrollY = state.scrollY
         self.particles = state.particles.map {
             Particle(state: $0, animation: assets.explosion)
         }

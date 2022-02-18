@@ -38,6 +38,7 @@ class ViewController: UIViewController {
     private let placeholderView = UIView()
     private let avatarView = AvatarView()
     private let constructionView = AvatarView()
+    private var scrollPosition: CGPoint?
     private var world: World!
 
     override func viewDidLoad() {
@@ -58,6 +59,7 @@ class ViewController: UIViewController {
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator = false
         scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        scrollView.delegate = self
         view.addSubview(scrollView)
 
         let gesture = UITapGestureRecognizer(
@@ -65,6 +67,11 @@ class ViewController: UIViewController {
             action: #selector(didTap)
         )
         scrollView.addGestureRecognizer(gesture)
+
+        if let scrollPosition = scrollPosition {
+            scrollView.setContentOffset(scrollPosition, animated: true)
+            self.scrollPosition = nil
+        }
 
         loadWorld(world)
 
@@ -445,6 +452,7 @@ class ViewController: UIViewController {
                 let data = try Data(contentsOf: savedGameURL)
                 let state = try JSONDecoder().decode(World.State.self, from: data)
                 world = try .init(state: state, assets: assets)
+                scrollPosition = CGPoint(x: world.scrollX, y: world.scrollY)
             } catch {
                 print("\(error)")
             }
@@ -456,9 +464,10 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: UIScrollViewDelegate {
-//    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        updateTileViews
-//    }
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        world.scrollX = scrollView.contentOffset.x
+        world.scrollY = scrollView.contentOffset.y
+    }
 }
 
 extension CGRect {
