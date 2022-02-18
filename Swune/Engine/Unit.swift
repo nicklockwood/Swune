@@ -30,7 +30,7 @@ class Unit {
     var attackCooldown: Double = 1
     var lastFired: Double = -.greatestFiniteMagnitude
     var path: [TileCoord] = []
-    var targetID: EntityID?
+    var target: EntityID?
 
     var coord: TileCoord {
         TileCoord(x: Int(x + 0.5), y: Int(y + 0.5))
@@ -55,6 +55,7 @@ class Unit {
         var x, y: Double
         var angle: Angle
         var health: Double
+        var target: EntityID?
     }
 
     var state: State {
@@ -65,7 +66,8 @@ class Unit {
             x: x,
             y: y,
             angle: angle,
-            health: health
+            health: health,
+            target: target
         )
     }
 
@@ -80,6 +82,7 @@ class Unit {
         self.y = state.y
         self.angle = state.angle
         self.health = state.health
+        self.target = state.target
     }
 }
 
@@ -111,9 +114,9 @@ extension Unit: Entity {
             world.screenShake += maxHealth
             return
         }
-        if let target = world.get(targetID) {
+        if let target = world.get(target) {
             if target.health <= 0 {
-                targetID = nil
+                self.target = nil
             } else if distance(from: target) < range {
                 path = []
                 // Attack

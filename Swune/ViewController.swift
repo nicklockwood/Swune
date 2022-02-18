@@ -363,16 +363,14 @@ class ViewController: UIViewController {
         let location = gesture.location(in: scrollView)
         let coord = tileCoordinate(at: location)
         if let building = world.placeholder, building.bounds.contains(coord) {
-            if world.placeBuilding(building) {
-                world.placeholder = nil
-            }
+            _ = world.placeBuilding(building)
         } else if let unit = world.pickUnit(at: coord) {
             if let current = world.selectedEntity as? Unit,
                current.team == playerTeam,
                unit.team != playerTeam
             {
                 world.moveUnit(current, to: unit.coord)
-                current.targetID = unit.id
+                current.target = unit.id
             }
             world.selectedEntity = unit
             updateViews()
@@ -383,13 +381,13 @@ class ViewController: UIViewController {
             {
                 let coord = TileCoord(x: building.x, y: building.y)
                 world.moveUnit(current, to: coord)
-                current.targetID = building.id
+                current.target = building.id
             }
             world.selectedEntity = building
             updateViews()
         } else if let unit = world.selectedEntity as? Unit, unit.team == playerTeam {
             world.moveUnit(unit, to: coord)
-            unit.targetID = nil
+            unit.target = nil
         } else {
             world.selectedEntity = nil
             updateViews()

@@ -40,7 +40,7 @@ class Construction {
 
     // MARK: Serialization
 
-    struct State {
+    struct State: Codable {
         var type: EntityTypeID
         var elapsedTime: Double
     }
@@ -84,6 +84,7 @@ class Building {
         var team: Int
         var x, y: Int
         var health: Double
+        var construction: Construction.State?
     }
 
     var state: State {
@@ -93,7 +94,8 @@ class Building {
             team: team,
             x: x,
             y: y,
-            health: health
+            health: health,
+            construction: construction?.state
         )
     }
 
@@ -107,6 +109,9 @@ class Building {
         self.x = state.x
         self.y = state.y
         self.health = state.health
+        self.construction = try state.construction.flatMap {
+            try Construction(state: $0, assets: assets)
+        }
     }
 }
 
@@ -151,12 +156,13 @@ extension Building: Entity {
             return
         }
         if let construction = construction {
-            construction.elapsedTime += timeStep
-            guard construction.progress >= 1 else {
+            construction.elapsedTime = min(
+                construction.buildTime,
+                construction.elapsedTime + timeStep
+            )
+            if construction.progress < 1 || placeholder != nil {
                 return
             }
-            construction.elapsedTime = construction.buildTime
-            self.construction = nil
             switch construction.type {
             case let buildingType as BuildingType:
                 guard let nearest = world.nearestFreeRect(
@@ -180,6 +186,7 @@ extension Building: Entity {
                 let dy = unit.y + 0.5 - (Double(y) + Double(type.height) / 2)
                 unit.angle = Angle(x: dx, y: dy) ?? .zero
                 world.add(unit)
+                self.construction = nil
             default:
                 assertionFailure()
             }
@@ -197,8 +204,7 @@ extension World {
     }
 
     var placeholder: Building? {
-        get { selectedBuilding?.placeholder }
-        set { selectedBuilding?.placeholder = nil }
+        selectedBuilding?.placeholder
     }
 
     func pickBuilding(at coord: TileCoord) -> Building? {
@@ -236,6 +242,12 @@ extension World {
                 building.health /= 2
             }
             add(building)
+        }
+        if let selectedBuilding = selectedBuilding,
+           selectedBuilding.placeholder === building
+        {
+            selectedBuilding.placeholder = nil
+            selectedBuilding.construction = nil
         }
         return true
     }
