@@ -40,6 +40,7 @@ class Unit {
     var spice: Int
     var isHarvesting: Bool
     var lastFired: Double
+    var lastSmoked: Double
     var path: [TileCoord] = []
     var target: EntityID?
 
@@ -63,6 +64,7 @@ class Unit {
         self.spice = 0
         self.isHarvesting = false
         self.lastFired = -.greatestFiniteMagnitude
+        self.lastSmoked = -.greatestFiniteMagnitude
     }
 
     func canEnterBuilding(_ building: Building) -> Bool {
@@ -79,6 +81,13 @@ class Unit {
     }
 
     func findPath(to end: TileCoord, in world: World) -> [TileCoord] {
+        var end = end
+        while !world.unit(self, canMoveTo: end) {
+            guard let next = world.nearestCoord(from: end, to: coord) else {
+                return []
+            }
+            end = next
+        }
         switch role {
         case .harvester:
             return world.findPath(
@@ -107,6 +116,7 @@ class Unit {
         var spice: Int
         var isHarvesting: Bool
         var lastFired: Double
+        var lastSmoked: Double
     }
 
     var state: State {
@@ -122,7 +132,8 @@ class Unit {
             elapsedTime: elapsedTime,
             spice: spice,
             isHarvesting: isHarvesting,
-            lastFired: lastFired
+            lastFired: lastFired,
+            lastSmoked: lastSmoked
         )
     }
 
@@ -142,6 +153,7 @@ class Unit {
         self.spice = state.spice
         self.isHarvesting = state.isHarvesting
         self.lastFired = state.lastFired
+        self.lastSmoked = state.lastSmoked
     }
 }
 
@@ -174,6 +186,12 @@ extension Unit: Entity {
             ))
             world.screenShake += maxHealth
             return
+        } else if health < 0.3 * maxHealth {
+            let cooldown = 0.2
+            if world.elapsedTime - lastSmoked > cooldown {
+                world.emitSmoke(from: coord)
+                lastSmoked = world.elapsedTime
+            }
         }
         // Attack target
         if let target = world.get(target) {
@@ -377,7 +395,6 @@ extension World {
             return true
         }
         return unit.canEnterBuilding(building)
-
     }
 }
 

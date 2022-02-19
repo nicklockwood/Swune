@@ -78,6 +78,12 @@ class World {
         })
     }
 
+    func nearestCoord(from start: TileCoord, to end: TileCoord) -> TileCoord? {
+        nodesAdjacentTo(start).min(by: {
+            $0.distance(from: end) < $1.distance(from: end)
+        })
+    }
+
     func update(timeStep: Double) {
         elapsedTime += timeStep
         // Update entities
@@ -140,8 +146,8 @@ class World {
         self.scrollX = state.scrollX
         self.scrollY = state.scrollY
         self.selectedEntityID = state.selectedEntity
-        self.particles = state.particles.map {
-            Particle(state: $0, animation: assets.explosion)
+        self.particles = try state.particles.map {
+            try Particle(state: $0, assets: assets)
         }
         self.projectiles = state.projectiles.map {
             Projectile(state: $0)

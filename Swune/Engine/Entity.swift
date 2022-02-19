@@ -52,3 +52,17 @@ extension Entity {
         entity.bounds.coords.map { distance(from: $0) }.min() ?? .infinity
     }
 }
+
+extension World {
+    func emitSmoke(from coord: TileCoord) {
+        let x = Double(coord.x) + 0.5 + .random(in: -0.25 ... 0.25)
+        let y = Double(coord.y) + 0.5 + .random(in: -0.25 ... 0)
+        particles.append(Particle(
+            x: x,
+            y: y,
+            dx: 1,
+            dy: -1,
+            animation: assets.smoke
+        ))
+    }
+}

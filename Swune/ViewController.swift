@@ -47,7 +47,7 @@ class ViewController: UIViewController {
         let assets = try! Assets(
             unitTypes: loadJSON("Units"),
             buildingTypes: loadJSON("Buildings"),
-            explosion: loadJSON("Explosion")
+            effects: loadJSON("Effects")
         )
         let level: Level = try! loadJSON("Level1")
         self.restoreState(with: assets)
@@ -172,6 +172,7 @@ class ViewController: UIViewController {
         let spriteView: UIImageView
         if index >= spriteViews.count {
             spriteView = UIImageView(frame: frame)
+            spriteView.isUserInteractionEnabled = false
             spriteView.contentMode = .scaleToFill
             spriteView.layer.magnificationFilter = .nearest
             spriteViews.append(spriteView)

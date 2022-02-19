@@ -7,6 +7,7 @@
 
 class Particle {
     var x, y: Double
+    var dx, dy: Double
     var animation: Animation
     var elapsedTime: Double
 
@@ -18,15 +19,25 @@ class Particle {
         animation.frame(angle: .zero, time: elapsedTime)
     }
 
-    init(x: Double, y: Double, animation: Animation) {
+    init(
+        x: Double,
+        y: Double,
+        dx: Double = 0,
+        dy: Double = 0,
+        animation: Animation
+    ) {
         self.x = x
         self.y = y
+        self.dx = 0
+        self.dy = 0
         self.animation = animation
         self.elapsedTime = 0
     }
 
     func update(timeStep: Double, in world: World) {
         elapsedTime += timeStep
+        x += dx * timeStep
+        y += dy * timeStep
         if elapsedTime > animation.duration {
             world.removeParticle(self)
         }
@@ -36,16 +47,30 @@ class Particle {
 
     struct State: Codable {
         var x, y: Double
+        var dx, dy: Double
+        var effect: AnimationID
         var elapsedTime: Double = 0
     }
 
     var state: State {
-        .init(x: x, y: y, elapsedTime: elapsedTime)
+        .init(
+            x: x,
+            y: y,
+            dx: dx,
+            dy: dy,
+            effect: animation.id!,
+            elapsedTime: elapsedTime
+        )
     }
 
-    init(state: State, animation: Animation) {
+    init(state: State, assets: Assets) throws {
+        guard let animation = assets.effects[state.effect] else {
+            throw AssetError.unknownEffect(state.effect)
+        }
         self.x = state.x
         self.y = state.y
+        self.dx = state.dx
+        self.dy = state.dy
         self.elapsedTime = state.elapsedTime
         self.animation = animation
     }
