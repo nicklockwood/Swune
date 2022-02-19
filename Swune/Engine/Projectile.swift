@@ -10,9 +10,12 @@ import Foundation
 class Projectile {
     var x, y: Double
     var tx, ty: Double
-    var speed: Double = 5
+    var speed: Double = Projectile.speed
     var damage: Double = 0.25
     var lastSmoked: Double = -.greatestFiniteMagnitude
+
+    // TODO: refactor
+    fileprivate static let speed: Double = 5
 
     init(x: Double, y: Double, target: TileCoord) {
         self.x = x
@@ -68,7 +71,22 @@ class Projectile {
 
 extension World {
     func fireProjectile(from start: TileCoord, at entity: Entity) {
-        fireProjectile(from: start, at: entity.nearestCoord(to: start))
+        if let unit = entity as? Unit, let next = unit.path.first {
+            // Try to fire at where unit is going
+            let distance = start.distance(from: next)
+            let estimatedTime = distance / Projectile.speed
+            let estimatedUnitDistance = estimatedTime * unit.type.speed
+            let dx = Double(next.x) - unit.x
+            let dy = Double(next.y) - unit.y
+            let norm = (dx * dx + dy * dy).squareRoot()
+            let target = TileCoord(
+                x: Int(unit.x + dx / norm * estimatedUnitDistance),
+                y: Int(unit.y + dy / norm * estimatedUnitDistance)
+            )
+            fireProjectile(from: start, at: target)
+        } else {
+            fireProjectile(from: start, at: entity.nearestCoord(to: start))
+        }
     }
 
     func fireProjectile(from start: TileCoord, at target: TileCoord) {
