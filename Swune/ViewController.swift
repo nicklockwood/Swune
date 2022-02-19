@@ -219,27 +219,27 @@ class ViewController: UIViewController {
         }
 
         // Draw projectiles
-        for (i, projectile) in world.projectiles.enumerated() {
-            let projectileView: UIView
-            if i >= projectileViews.count {
-                projectileView = UIView(frame: .zero)
-                projectileView.backgroundColor = .yellow
-                projectileViews.append(projectileView)
-                scrollView.addSubview(projectileView)
-            } else {
-                projectileView = projectileViews[i]
-            }
-            projectileView.frame = CGRect(
-                x: tileSize.width * CGFloat(projectile.x),
-                y: tileSize.height * CGFloat(projectile.y),
-                width: tileSize.width,
-                height: tileSize.height
-            )
-        }
-        while projectileViews.count > world.projectiles.count {
-            projectileViews.last?.removeFromSuperview()
-            projectileViews.removeLast()
-        }
+//        for (i, projectile) in world.projectiles.enumerated() {
+//            let projectileView: UIView
+//            if i >= projectileViews.count {
+//                projectileView = UIView(frame: .zero)
+//                projectileView.backgroundColor = .yellow
+//                projectileViews.append(projectileView)
+//                scrollView.addSubview(projectileView)
+//            } else {
+//                projectileView = projectileViews[i]
+//            }
+//            projectileView.frame = CGRect(
+//                x: tileSize.width * CGFloat(projectile.x),
+//                y: tileSize.height * CGFloat(projectile.y),
+//                width: tileSize.width,
+//                height: tileSize.height
+//            )
+//        }
+//        while projectileViews.count > world.projectiles.count {
+//            projectileViews.last?.removeFromSuperview()
+//            projectileViews.removeLast()
+//        }
 
         // Draw particles
         for particle in world.particles {

@@ -34,7 +34,7 @@ class Unit {
     var x, y: Double
     var angle: Angle
     var team: Int
-    var range: Double = 3
+    var range: Double = 5
     var health: Double
     var elapsedTime: Double
     var spice: Int
@@ -197,7 +197,7 @@ extension Unit: Entity {
             } else if distance(from: target) < range {
                 path = []
                 // Attack
-                if world.elapsedTime - lastFired > type.attackCooldown ?? 1 {
+                if world.elapsedTime - lastFired > type.attackCooldown ?? 3 {
                     world.fireProjectile(from: coord, at: target)
                     lastFired = world.elapsedTime
                 }

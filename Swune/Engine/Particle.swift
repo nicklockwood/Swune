@@ -7,6 +7,7 @@
 
 enum ParticleTypeID: String, Hashable, Codable {
     case explosion
+    case smallExplosion
     case smoke
 }
 
@@ -98,6 +99,17 @@ extension World {
         if let index = particles.firstIndex(where: { $0 === particle }) {
             particles.remove(at: index)
         }
+    }
+
+    @discardableResult
+    func emitSmallExplosion(at x: Double, _ y: Double) -> Particle {
+        let explosion = Particle(
+            type: assets.particleTypes[.smallExplosion]!,
+            x: x,
+            y: y
+        )
+        particles.append(explosion)
+        return explosion
     }
 
     @discardableResult

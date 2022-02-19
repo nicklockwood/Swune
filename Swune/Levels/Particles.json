@@ -16,6 +16,22 @@
         }
     },
     {
+        "id": "smallExplosion",
+        "width": 1,
+        "height": 1,
+        "animation": {
+            "duration": 0.5,
+            "framesByAngle": [[
+                "small-explosion1",
+                "small-explosion2",
+                "small-explosion3",
+                "small-explosion4",
+                "small-explosion5",
+                "small-explosion6"
+            ]]
+        }
+    },
+    {
         "id": "smoke",
         "width": 1,
         "height": 1,

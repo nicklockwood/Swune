@@ -9,30 +9,39 @@ import Foundation
 
 class Projectile {
     var x, y: Double
-    var speed: Double = 3
+    var tx, ty: Double
+    var speed: Double = 5
     var damage: Double = 0.25
-    var target: TileCoord
+    var lastSmoked: Double = -.greatestFiniteMagnitude
 
     init(x: Double, y: Double, target: TileCoord) {
         self.x = x
         self.y = y
-        self.target = target
+        self.tx = Double(target.x) + 0.5 + .random(in: -0.5 ... 0.5)
+        self.ty = Double(target.y) + 0.5 + .random(in: -0.5 ... 0.5)
     }
 
     func update(timeStep: Double, in world: World) {
-        let dx = Double(target.x) - x, dy = Double(target.y) - y
+        let dx = tx - x, dy = ty - y
         let distance = (dx * dx + dy * dy).squareRoot()
         let step = timeStep * speed
         if distance < step {
-            x = Double(target.x)
-            y = Double(target.y)
-            if let entity = world.pickEntity(at: target) {
+            world.emitSmallExplosion(at: x, y)
+            if let entity = world.pickEntity(at: TileCoord(x: Int(x), y: Int(y))) {
                 entity.health -= damage
             }
             if let index = world.projectiles.firstIndex(where: { $0 === self }) {
                 world.projectiles.remove(at: index)
             }
         } else {
+            if world.elapsedTime > lastSmoked + 0.1 {
+                let x = x + .random(in: -0.05 ... 0.05)
+                let y = y + .random(in: -0.05 ... 0.05)
+                let smoke = world.emitSmoke(from: x, y)
+                smoke.dx = .random(in: 0 ... 0.5)
+                smoke.dy = .random(in: -0.5 ... 0)
+                lastSmoked = world.elapsedTime
+            }
             x += (dx / distance) * step
             y += (dy / distance) * step
         }
@@ -42,17 +51,18 @@ class Projectile {
 
     struct State: Codable {
         var x, y: Double
-        var target: TileCoord
+        var tx, ty: Double
     }
 
     var state: State {
-        .init(x: x, y: y, target: target)
+        .init(x: x, y: y, tx: tx, ty: ty)
     }
 
     init(state: State) {
         self.x = state.x
         self.y = state.y
-        self.target = state.target
+        self.tx = state.tx
+        self.ty = state.ty
     }
 }
 
@@ -63,8 +73,8 @@ extension World {
 
     func fireProjectile(from start: TileCoord, at target: TileCoord) {
         let projectile = Projectile(
-            x: Double(start.x),
-            y: Double(start.y),
+            x: Double(start.x) + 0.5,
+            y: Double(start.y) + 0.5,
             target: target
         )
         projectiles.append(projectile)
