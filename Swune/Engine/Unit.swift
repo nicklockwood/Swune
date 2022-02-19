@@ -271,13 +271,17 @@ extension Unit: Entity {
                         spice += tile.harvest()
                         world.map.setTile(tile, at: coord)
                     }
-                } else if world.map.tiles.contains(where: { $0.isSpice }) {
-                    // Seek spice
+                } else {
                     isHarvesting = false
-                    path = world.findPath(from: coord, to: { coord in
-                        world.map.tile(at: coord).isSpice &&
-                            world.unit(self, canMoveTo: coord)
-                    }, maxDistance: .infinity)
+                    // Seek spice
+                    if world.map.tiles.enumerated().contains(where: { i, tile in
+                        tile.isSpice && world.pickUnit(at: world.map.coord(at: i)) == nil
+                    }) {
+                        path = world.findPath(from: coord, to: { coord in
+                            world.map.tile(at: coord).isSpice &&
+                                world.unit(self, canMoveTo: coord)
+                        }, maxDistance: .infinity)
+                    }
                 }
             } else {
                 isHarvesting = false

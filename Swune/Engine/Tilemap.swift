@@ -47,6 +47,10 @@ struct Tilemap: Codable {
         return tiles[coord.y * width + coord.x]
     }
 
+    func coord(at index: Int) -> TileCoord {
+        return TileCoord(x: index % width, y: index / width)
+    }
+
     mutating func setTile(_ tile: Tile, at coord: TileCoord) {
         tiles[coord.y * width + coord.x] = tile
     }

@@ -22,6 +22,7 @@ struct Level: Codable {
         var y: Int
     }
 
+    var version: Int
     var tiles: [String]
     var buildings: [Building]
     var units: [Unit]

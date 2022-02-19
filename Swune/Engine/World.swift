@@ -6,6 +6,7 @@
 //
 
 class World {
+    private(set) var version: Int
     private(set) var entities: [Entity?] = []
     private var indexByID: [EntityID: Int] = [:]
     private var nextID: Int = 0
@@ -33,6 +34,7 @@ class World {
 
     init(level: Level, assets: Assets) {
         self.assets = assets
+        self.version = level.version
         self.map = Tilemap(level: level)
         self.elapsedTime = 0
         self.screenShake = 0
@@ -101,6 +103,7 @@ class World {
 
     struct State: Codable {
         var map: Tilemap
+        var version: Int
         var elapsedTime: Double
         var screenShake: Double
         var scrollX: Double
@@ -115,6 +118,7 @@ class World {
     var state: State {
         .init(
             map: map,
+            version: version,
             elapsedTime: elapsedTime,
             screenShake: screenShake,
             scrollX: scrollX,
@@ -129,6 +133,7 @@ class World {
 
     init(state: State, assets: Assets) throws {
         self.assets = assets
+        self.version = state.version
         self.map = state.map
         self.elapsedTime = state.elapsedTime
         self.screenShake = state.screenShake

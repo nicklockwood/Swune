@@ -49,9 +49,10 @@ class ViewController: UIViewController {
             buildingTypes: loadJSON("Buildings"),
             explosion: loadJSON("Explosion")
         )
+        let level: Level = try! loadJSON("Level1")
         self.restoreState(with: assets)
-        if world == nil {
-            world = .init(level: try! loadJSON("Level1"), assets: assets)
+        if world == nil || world.version != level.version {
+            world = .init(level: level, assets: assets)
         }
         NotificationCenter.default.addObserver(
             forName: UIApplication.willResignActiveNotification,
