@@ -1,0 +1,35 @@
+[
+    {
+        "id": "explosion",
+        "width": 2,
+        "height": 2,
+        "animation": {
+            "duration": 1,
+            "framesByAngle": [[
+                "explosion1",
+                "explosion2",
+                "explosion3",
+                "explosion4",
+                "explosion5",
+                "explosion6"
+            ]]
+        }
+    },
+    {
+        "id": "smoke",
+        "width": 1,
+        "height": 1,
+        "animation": {
+            "duration": 1,
+            "framesByAngle": [[
+                "smoke1",
+                "smoke2",
+                "smoke3",
+                "smoke4",
+                "smoke5",
+                "smoke6",
+                "smoke7"
+            ]]
+        }
+    }
+]

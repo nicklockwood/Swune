@@ -68,6 +68,7 @@ class Building {
     var team: Int
     var x, y: Int
     var health: Double
+    var lastSmoked: Double
     var elapsedTime: Double
     var construction: Construction?
     var building: Building?
@@ -86,6 +87,7 @@ class Building {
         self.x = coord.x
         self.y = coord.y
         self.health = type.health
+        self.lastSmoked = -.greatestFiniteMagnitude
         self.elapsedTime = 0
         self.building = nil
         self.unit = nil
@@ -99,6 +101,7 @@ class Building {
         var team: Int
         var x, y: Int
         var health: Double
+        var lastSmoked: Double
         var elapsedTime: Double
         var construction: Construction.State?
         var buildings: [Building.State]
@@ -113,6 +116,7 @@ class Building {
             x: x,
             y: y,
             health: health,
+            lastSmoked: lastSmoked,
             elapsedTime: elapsedTime,
             construction: construction?.state,
             buildings: building.map { [$0.state] } ?? [],
@@ -130,6 +134,7 @@ class Building {
         self.x = state.x
         self.y = state.y
         self.health = state.health
+        self.lastSmoked = state.lastSmoked
         self.elapsedTime = state.elapsedTime
         self.construction = try state.construction.flatMap {
             try Construction(state: $0, assets: assets)
@@ -175,18 +180,22 @@ extension Building: Entity {
             world.remove(self)
             let coords = bounds.coords
             for (i, coord) in coords.enumerated().shuffled() {
-                let explosion = Particle(
-                    x: Double(coord.x) + 0.5,
-                    y: Double(coord.y) + 0.5,
-                    animation: world.assets.explosion
-                )
+                let x = Double(coord.x) + 0.5, y = Double(coord.y) + 0.5
+                let explosion = world.emitExplosion(at: x, y)
                 explosion.elapsedTime = -(Double(i) / Double(coords.count)) * 0.5
-                world.particles.append(explosion)
-                world.screenShake += 2
             }
             construction = nil
             building = nil
             return
+        } else if health < 0.5 * maxHealth {
+            let cooldown = health / maxHealth / 2
+            if world.elapsedTime - lastSmoked > cooldown {
+                let w = bounds.width / 2, h = bounds.height / 2
+                let x = bounds.x + w + .random(in: -w * 0.75 ... w * 0.75)
+                let y = bounds.y + h + .random(in: -h * 0.75 ... h * 0.5)
+                world.emitSmoke(from: x, y)
+                lastSmoked = world.elapsedTime
+            }
         }
         // Handle construction
         if let construction = construction {

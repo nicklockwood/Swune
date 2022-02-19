@@ -47,7 +47,7 @@ class ViewController: UIViewController {
         let assets = try! Assets(
             unitTypes: loadJSON("Units"),
             buildingTypes: loadJSON("Buildings"),
-            effects: loadJSON("Effects")
+            particleTypes: loadJSON("Particles")
         )
         let level: Level = try! loadJSON("Level1")
         self.restoreState(with: assets)

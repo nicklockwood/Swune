@@ -7,13 +7,7 @@
 
 typealias AnimationFrame = String
 
-enum AnimationID: String, Hashable, Codable {
-    case explosion
-    case smoke
-}
-
 struct Animation: Decodable {
-    var id: AnimationID?
     var duration: Double
     var framesByAngle: [[AnimationFrame]]
     var loopCount: Int?

@@ -9,18 +9,18 @@ enum AssetError: Error {
     case unknownUnitType(EntityTypeID)
     case unknownBuildingType(EntityTypeID)
     case unknownEntityType(EntityTypeID)
-    case unknownEffect(AnimationID)
+    case unknownParticleType(ParticleTypeID)
 }
 
 struct Assets {
     var unitTypes: [EntityTypeID: UnitType]
     var buildingTypes: [EntityTypeID: BuildingType]
-    var effects: [AnimationID: Animation]
+    var particleTypes: [ParticleTypeID: ParticleType]
 
     init(
         unitTypes: [UnitType],
         buildingTypes: [BuildingType],
-        effects: [Animation]
+        particleTypes: [ParticleType]
     ) {
         self.unitTypes = Dictionary(
             uniqueKeysWithValues: unitTypes.map { ($0.id, $0) }
@@ -28,21 +28,13 @@ struct Assets {
         self.buildingTypes = Dictionary(
             uniqueKeysWithValues: buildingTypes.map { ($0.id, $0) }
         )
-        self.effects = Dictionary(
-            uniqueKeysWithValues: effects.map { ($0.id!, $0) }
+        self.particleTypes = Dictionary(
+            uniqueKeysWithValues: particleTypes.map { ($0.id, $0) }
         )
     }
 }
 
 extension Assets {
-    var explosion: Animation {
-        effects[.explosion]!
-    }
-
-    var smoke: Animation {
-        effects[.smoke]!
-    }
-
     func entityType(for id: EntityTypeID) -> EntityType? {
         if let unitType = unitTypes[id] {
             return unitType

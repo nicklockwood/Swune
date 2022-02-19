@@ -179,17 +179,14 @@ extension Unit: Entity {
         // Handle damage
         if health <= 0 {
             world.remove(self)
-            world.particles.append(Particle(
-                x: x + 0.5,
-                y: y + 0.5,
-                animation: world.assets.explosion
-            ))
-            world.screenShake += maxHealth
+            world.emitExplosion(at: x + 0.5, y + 0.5)
             return
-        } else if health < 0.3 * maxHealth {
-            let cooldown = 0.2
+        } else if health < 0.5 * maxHealth {
+            let cooldown = health / maxHealth / 2
             if world.elapsedTime - lastSmoked > cooldown {
-                world.emitSmoke(from: coord)
+                let x = x + 0.5 + .random(in: -0.25 ... 0.25)
+                let y = y + 0.5 + .random(in: -0.25 ... 0)
+                world.emitSmoke(from: x, y)
                 lastSmoked = world.elapsedTime
             }
         }
