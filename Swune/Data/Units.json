@@ -1,0 +1,23 @@
+[
+    {
+        "id": "harvester",
+        "name": "Harvester",
+        "speed": 2,
+        "turnSpeed": 1,
+        "health": 2,
+        "role": "harvester",
+        "idle": {
+            "duration": 0,
+            "framesByAngle": [
+                ["harvester-n"],
+                ["harvester-ne"],
+                ["harvester-e"],
+                ["harvester-se"],
+                ["harvester-s"],
+                ["harvester-sw"],
+                ["harvester-w"],
+                ["harvester-nw"]
+            ]
+        }
+    }
+]

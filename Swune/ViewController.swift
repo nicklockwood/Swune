@@ -17,7 +17,7 @@ func loadJSON<T: Decodable>(_ name: String) throws -> T {
     let url = Bundle.main.url(
         forResource: name,
         withExtension: "json",
-        subdirectory: "Levels"
+        subdirectory: "Data"
     )!
     let data = try Data(contentsOf: url)
     return try JSONDecoder().decode(T.self, from: data)
@@ -118,7 +118,7 @@ class ViewController: UIViewController {
         loadTilemap(world.map)
 
         // Draw reticle
-        if let reticleImage = UIImage(named: "reticle") {
+        if let reticleImage = UIImage(sprite: "reticle") {
             let scale = tileSize.width / reticleImage.size.width
             selectionView.transform = CGAffineTransform(scaleX: scale, y: scale)
             selectionView.image = reticleImage.stretchableImage(
@@ -168,7 +168,7 @@ class ViewController: UIViewController {
         updateViews()
     }
 
-    func addSprite(_ name: String?, frame: CGRect, index: Int) {
+    func addSprite(_ name: String?, team: Int?, frame: CGRect, index: Int) {
         let spriteView: UIImageView
         if index >= spriteViews.count {
             spriteView = UIImageView(frame: frame)
@@ -182,7 +182,7 @@ class ViewController: UIViewController {
             spriteView.frame = frame
             spriteView.isHidden = false
         }
-        spriteView.image = name.flatMap { UIImage(named: $0) }
+        spriteView.image = name.flatMap { UIImage(sprite: $0, team: team) }
     }
 
     func updateViews() {
@@ -202,6 +202,7 @@ class ViewController: UIViewController {
         for building in world.buildings {
             addSprite(
                 building.imageName,
+                team: building.team,
                 frame: CGRect(building.bounds),
                 index: i
             )
@@ -212,6 +213,7 @@ class ViewController: UIViewController {
         for unit in world.units {
             addSprite(
                 unit.imageName,
+                team: unit.team,
                 frame: CGRect(unit.bounds),
                 index: i
             )
@@ -245,6 +247,7 @@ class ViewController: UIViewController {
         for particle in world.particles {
             addSprite(
                 particle.imageName,
+                team: nil,
                 frame: CGRect(particle.bounds),
                 index: i
             )
@@ -287,7 +290,9 @@ class ViewController: UIViewController {
 
         // Draw avatar
         if let selectedEntity = world.selectedEntity {
-            avatarView.imageName = selectedEntity.avatarName
+            avatarView.image = selectedEntity.avatarName.flatMap {
+                UIImage(sprite: $0, team: selectedEntity.team)
+            }
             let health = selectedEntity.health / selectedEntity.maxHealth
             avatarView.progress = health
             switch health {
@@ -308,7 +313,9 @@ class ViewController: UIViewController {
         if let building = world.selectedBuilding,
            let construction = building.construction
         {
-            constructionView.imageName = construction.type.avatarName
+            constructionView.image = construction.type.avatarName.flatMap {
+                UIImage(sprite: $0, team: building.team)
+            }
             constructionView.progress = construction.progress
             constructionView.barColor = .cyan
             constructionView.isHidden = false
@@ -318,7 +325,9 @@ class ViewController: UIViewController {
 
         // Update menu
         if let building = world.selectedBuilding {
-            if building.building != nil || building.construction != nil {
+            if building.team != playerTeam {
+                avatarView.menu = nil
+            } else if building.building != nil || building.construction != nil {
                 avatarView.menu = UIMenu(children: [
                     UIAction(title: "Cancel") { [weak building] _ in
                         building?.construction = nil
@@ -335,7 +344,9 @@ class ViewController: UIViewController {
                     }
                     buildActions.append(UIAction(
                         title: "Build \(type.name)",
-                        image: type.avatarName.flatMap { UIImage(named: $0) }
+                        image: type.avatarName.flatMap {
+                            UIImage(sprite: $0, team: building.team)
+                        }
                     ) { [weak building] _ in
                         building?.construction = Construction(type: type)
                     })
@@ -419,7 +430,7 @@ class ViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         avatarView.frame.origin = CGPoint(
-            x: view.frame.width - avatarView.frame.width - 16,
+            x: view.frame.width - avatarView.frame.width - view.safeAreaInsets.right - 16,
             y: view.safeAreaInsets.top + 16
         )
         constructionView.frame.origin = CGPoint(
@@ -448,10 +459,6 @@ class ViewController: UIViewController {
                 scrollPosition = CGPoint(x: world.scrollX, y: world.scrollY)
             } catch {
                 print("\(error)")
-                try? FileManager.default.moveItem(
-                    at: savedGameURL,
-                    to: savedGameURL.appendingPathExtension("backup")
-                )
             }
         }
     }
@@ -488,6 +495,6 @@ extension Tile {
     }
 
     var image: UIImage? {
-        imageName.flatMap { UIImage(named: $0) }
+        imageName.flatMap { UIImage(sprite: $0) }
     }
 }

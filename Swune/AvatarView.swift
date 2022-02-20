@@ -15,10 +15,8 @@ class AvatarView: UIButton {
     private let avatarView = UIImageView()
     private let progressView = UIView()
 
-    var imageName: String? {
-        didSet {
-            avatarView.image = imageName.flatMap { UIImage(named: $0) }
-        }
+    var image: UIImage? {
+        didSet { avatarView.image = image }
     }
 
     var progress: Double = 0 {

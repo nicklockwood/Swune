@@ -5,14 +5,14 @@
 //  Created by Nick Lockwood on 16/02/2022.
 //
 
-typealias AnimationFrame = String
+typealias Sprite = String
 
 struct Animation: Decodable {
     var duration: Double
-    var framesByAngle: [[AnimationFrame]]
+    var framesByAngle: [[Sprite]]
     var loopCount: Int?
 
-    func frame(angle: Angle, time: Double) -> AnimationFrame? {
+    func frame(angle: Angle, time: Double) -> Sprite? {
         guard time >= 0 else {
             return nil
         }

@@ -25,7 +25,7 @@
         "height": 2,
         "health": 5,
         "role": "refinery",
-        "unit": "blue-harvester",
+        "unit": "harvester",
         "idle": {
             "duration": 2,
             "framesByAngle": [[
