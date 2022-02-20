@@ -206,21 +206,22 @@ extension Building: Entity {
             self.construction = nil
             switch construction.type {
             case let buildingType as BuildingType:
-                guard let nearest = world.nearestFreeRect(
-                    width: buildingType.width,
-                    height: buildingType.height,
-                    to: bounds,
-                    for: buildingType.role ?? .default
-                ) else {
-                    return // TODO: error
-                }
                 building = world.create { id in
                     let building = Building(
                         id: id,
                         type: buildingType,
                         team: team,
-                        coord: nearest
+                        coord: self.bounds.coords[0]
                     )
+                    if let nearest = world.nearestFreeRect(
+                        to: bounds,
+                        for: building
+                    ) {
+                        building.x = nearest.x
+                        building.y = nearest.y
+                    } else {
+                        assertionFailure()
+                    }
                     if let typeID = building.type.unit {
                         if let unitType = world.assets.unitTypes[typeID] {
                             building.unit = world.create { id in
@@ -309,7 +310,7 @@ extension World {
         case .slab:
             return true
         case .refinery, .default:
-            return isNextToBuilding(at: bounds)
+            return isNextToBuilding(at: bounds, team: building.team)
         }
     }
 
@@ -361,10 +362,8 @@ private extension World {
     }
 
     func nearestFreeRect(
-        width: Int,
-        height: Int,
         to bounds: Bounds,
-        for role: BuildingRole
+        for building: Building
     ) -> TileCoord? {
         let coords = bounds.coords
         var visited = Set(coords)
@@ -376,11 +375,11 @@ private extension World {
                 let bounds = Bounds(
                     x: Double(node.x),
                     y: Double(node.y),
-                    width: Double(width),
-                    height: Double(height)
+                    width: Double(building.type.width),
+                    height: Double(building.type.height)
                 )
-                if isNextToBuilding(at: bounds) {
-                    if isBuildableSpace(at: bounds, for: role) {
+                if isNextToBuilding(at: bounds, team: building.team) {
+                    if isBuildableSpace(at: bounds, for: building.role) {
                         return node
                     }
                     unvisited.insert(node, at: 0)
@@ -414,10 +413,10 @@ private extension World {
         }
     }
 
-    func isNextToBuilding(at bounds: Bounds) -> Bool {
+    func isNextToBuilding(at bounds: Bounds, team: Int) -> Bool {
         let adjacentNodes = nodesAdjacentTo(bounds)
-        return buildings.contains(where: { building in
-            !adjacentNodes.isDisjoint(with: building.bounds.coords)
+        return buildings.contains(where: {
+            $0.team == team && !adjacentNodes.isDisjoint(with: $0.bounds.coords)
         })
     }
 }
