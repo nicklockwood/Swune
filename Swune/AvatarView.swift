@@ -42,8 +42,9 @@ class AvatarView: UIButton {
             bottom: borderWidth * 2 + barHeight,
             right: borderWidth
         ))
-        avatarView.backgroundColor = .white
-        avatarView.contentMode = .scaleToFill
+        avatarView.backgroundColor = .gray
+        avatarView.clipsToBounds = true
+        avatarView.contentMode = .scaleAspectFill
         avatarView.layer.magnificationFilter = .nearest
         avatarView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(avatarView)

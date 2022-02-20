@@ -15,12 +15,14 @@ enum BuildingRole: String, Decodable {
 
 struct BuildingType: EntityType, Decodable {
     var id: EntityTypeID
+    var name: String
     var width: Int
     var height: Int
     var health: Double
     var role: BuildingRole?
     var idle: Animation
     var active: Animation?
+    var constructions: [EntityTypeID]?
     var unit: EntityTypeID?
 
     var avatarName: String? {

@@ -327,43 +327,24 @@ class ViewController: UIViewController {
                 ])
             } else {
                 let assets = world.assets
-                let slabType = assets.buildingTypes["slab"]!
-                let largeSlabType = assets.buildingTypes["largeSlab"]!
-                let factoryType = assets.buildingTypes["vehicleFactory"]!
-                let refineryType = assets.buildingTypes["refinery"]!
-                let harvesterType = assets.unitTypes["blue-harvester"]!
-                avatarView.menu = UIMenu(children: [
-                    UIAction(
-                        title: "Build Slab",
-                        image: slabType.avatarName.flatMap { UIImage(named: $0) }
-                    ) { [weak building] _ in
-                        building?.construction = Construction(type: slabType)
-                    },
-                    UIAction(
-                        title: "Build Large Slab",
-                        image: largeSlabType.avatarName.flatMap { UIImage(named: $0) }
-                    ) { [weak building] _ in
-                        building?.construction = Construction(type: largeSlabType)
-                    },
-                    UIAction(
-                        title: "Build Factory",
-                        image: factoryType.avatarName.flatMap { UIImage(named: $0) }
-                    ) { [weak building] _ in
-                        building?.construction = Construction(type: factoryType)
-                    },
-                    UIAction(
-                        title: "Build Refinery",
-                        image: refineryType.avatarName.flatMap { UIImage(named: $0) }
-                    ) { [weak building] _ in
-                        building?.construction = Construction(type: refineryType)
-                    },
-                    UIAction(
-                        title: "Build Harvester",
-                        image: harvesterType.avatarName.flatMap { UIImage(named: $0) }
-                    ) { [weak building] _ in
-                        building?.construction = Construction(type: harvesterType)
+                var buildActions: [UIAction] = []
+                for typeID in building.type.constructions ?? [] {
+                    guard let type = assets.entityType(for: typeID) else {
+                        assertionFailure()
+                        continue
                     }
-                ])
+                    buildActions.append(UIAction(
+                        title: "Build \(type.name)",
+                        image: type.avatarName.flatMap { UIImage(named: $0) }
+                    ) { [weak building] _ in
+                        building?.construction = Construction(type: type)
+                    })
+                }
+                if buildActions.isEmpty {
+                    avatarView.menu = nil
+                } else {
+                    avatarView.menu = UIMenu(children: buildActions)
+                }
             }
         } else if let unit = world.selectedUnit {
             avatarView.menu = nil

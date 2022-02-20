@@ -1,6 +1,7 @@
 [
     {
         "id": "constructionYard",
+        "name": "Construction Yard",
         "width": 2,
         "height": 2,
         "health": 5,
@@ -9,10 +10,17 @@
             "framesByAngle": [
                 ["construction-yard"],
             ]
-        }
+        },
+        "constructions": [
+            "slab",
+            "largeSlab",
+            "refinery",
+            "factory"
+        ]
     },
     {
         "id": "refinery",
+        "name": "Refinery",
         "width": 3,
         "height": 2,
         "health": 5,
@@ -42,10 +50,14 @@
         }
     },
     {
-        "id": "vehicleFactory",
+        "id": "factory",
+        "name": "Vehicle Factory",
         "width": 2,
         "height": 2,
         "health": 3,
+        "constructions": [
+            "harvester"
+        ],
         "idle": {
             "duration": 0,
             "framesByAngle": [
@@ -55,6 +67,7 @@
     },
     {
         "id": "slab",
+        "name": "Concrete Slab",
         "width": 1,
         "height": 1,
         "health": 1,
@@ -68,6 +81,7 @@
     },
     {
         "id": "largeSlab",
+        "name": "Large Slab",
         "width": 2,
         "height": 2,
         "health": 1,

@@ -14,6 +14,7 @@ enum UnitRole: String, Decodable {
 
 struct UnitType: EntityType, Decodable {
     var id: EntityTypeID
+    var name: String
     var speed: Double
     var turnSpeed: Double
     var health: Double

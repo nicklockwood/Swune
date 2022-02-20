@@ -19,6 +19,7 @@ extension EntityTypeID: ExpressibleByStringLiteral {
 
 protocol EntityType {
     var id: EntityTypeID { get }
+    var name: String { get }
     var avatarName: String? { get }
 }
 
