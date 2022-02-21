@@ -251,13 +251,14 @@ extension Building: Entity {
                 unit.path = []
                 let unloadingTimeStep = type.active?.duration ?? 1
                 if elapsedTime >= unloadingTimeStep {
-                    unit.spice -= 1
-                    elapsedTime -= unloadingTimeStep
-                }
-                if unit.spice <= 0 {
-                    unit.spice = 0
-                    world.spawnUnit(unit, from: bounds)
-                    self.unit = nil
+                    if unit.spice == 0 {
+                        world.spawnUnit(unit, from: bounds)
+                        self.unit = nil
+                    } else {
+                        elapsedTime -= unloadingTimeStep
+                        unit.spice -= 1
+                        world.teams[unit.team]?.spice += 100
+                    }
                 }
             case .default:
                 assertionFailure()

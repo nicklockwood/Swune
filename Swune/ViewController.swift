@@ -38,6 +38,7 @@ class ViewController: UIViewController {
     private let placeholderView = UIView()
     private let avatarView = AvatarView()
     private let constructionView = AvatarView()
+    private let spiceView = UILabel()
     private var scrollPosition: CGPoint?
     private var world: World!
 
@@ -81,6 +82,15 @@ class ViewController: UIViewController {
             scrollView.setContentOffset(scrollPosition, animated: true)
             self.scrollPosition = nil
         }
+
+        spiceView.font = UIFont.monospacedSystemFont(ofSize: 6, weight: .semibold)
+        spiceView.textColor = .white
+        spiceView.layer.shadowOffset = CGSize(width: 0.4, height: 0.4)
+        spiceView.layer.shadowOpacity = 1
+        spiceView.layer.shadowRadius = 0
+        spiceView.layer.magnificationFilter = .nearest
+        spiceView.transform = CGAffineTransform(scaleX: 8, y: 8)
+        view.addSubview(spiceView)
 
         loadWorld(world)
 
@@ -323,6 +333,12 @@ class ViewController: UIViewController {
             constructionView.isHidden = true
         }
 
+        // Draw spice
+        if let state = world.teams[playerTeam] {
+            spiceView.text = "$\(state.spice)"
+            spiceView.sizeToFit()
+        }
+
         // Update menu
         if let building = world.selectedBuilding {
             if building.team != playerTeam {
@@ -434,8 +450,12 @@ class ViewController: UIViewController {
             y: view.safeAreaInsets.top + 16
         )
         constructionView.frame.origin = CGPoint(
-            x: view.frame.width - constructionView.frame.width - 16,
+            x: avatarView.frame.minX,
             y: avatarView.frame.maxY + 16
+        )
+        spiceView.frame.origin = CGPoint(
+            x: view.safeAreaInsets.left + 16,
+            y: avatarView.frame.minY - 10
         )
     }
 

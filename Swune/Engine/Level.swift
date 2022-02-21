@@ -8,14 +8,7 @@
 import Foundation
 
 struct Level: Codable {
-    struct Building: Codable {
-        var type: EntityTypeID
-        var team: Int
-        var x: Int
-        var y: Int
-    }
-
-    struct Unit: Codable {
+    struct Entity: Codable {
         var type: EntityTypeID
         var team: Int
         var x: Int
@@ -24,6 +17,6 @@ struct Level: Codable {
 
     var version: Int
     var tiles: [String]
-    var buildings: [Building]
-    var units: [Unit]
+    var buildings: [Entity]
+    var units: [Entity]
 }

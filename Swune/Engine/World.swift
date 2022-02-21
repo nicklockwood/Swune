@@ -5,6 +5,11 @@
 //  Created by Nick Lockwood on 13/02/2022.
 //
 
+struct TeamState: Codable {
+    var team: Int
+    var spice: Int = 1000
+}
+
 class World {
     private(set) var version: Int
     private(set) var entities: [Entity?] = []
@@ -16,6 +21,7 @@ class World {
     var screenShake: Double
     var scrollX: Double
     var scrollY: Double
+    var teams: [Int: TeamState]
     var particles: [Particle]
     var projectiles: [Projectile]
 
@@ -42,12 +48,16 @@ class World {
         self.scrollY = 0
         self.particles = []
         self.projectiles = []
+        self.teams = [:]
         level.buildings.forEach {
             guard let type = assets.buildingTypes[$0.type] else {
                 assertionFailure()
                 return
             }
             let team = $0.team
+            if teams[team] == nil {
+                teams[team] = TeamState(team: team)
+            }
             let coord = TileCoord(x: $0.x, y: $0.y)
             add(create { id in
                 Building(id: id, type: type, team: team, coord: coord)
@@ -59,6 +69,9 @@ class World {
                 return
             }
             let team = $0.team
+            if teams[team] == nil {
+                teams[team] = TeamState(team: team)
+            }
             let coord = TileCoord(x: $0.x, y: $0.y)
             add(create { id in
                 Unit(id: id, type: type, team: team, coord: coord)
@@ -115,6 +128,7 @@ class World {
         var scrollX: Double
         var scrollY: Double
         var selectedEntity: EntityID?
+        var teams: [TeamState]
         var buildings: [Building.State]
         var units: [Unit.State] = []
         var particles: [Particle.State]
@@ -130,6 +144,7 @@ class World {
             scrollX: scrollX,
             scrollY: scrollY,
             selectedEntity: selectedEntityID,
+            teams: Array(teams.values),
             buildings: buildings.map { $0.state },
             units: units.map { $0.state },
             particles: particles.map { $0.state },
@@ -146,6 +161,9 @@ class World {
         self.scrollX = state.scrollX
         self.scrollY = state.scrollY
         self.selectedEntityID = state.selectedEntity
+        self.teams = Dictionary(uniqueKeysWithValues: state.teams.map {
+            ($0.team, $0)
+        })
         self.particles = try state.particles.map {
             try Particle(state: $0, assets: assets)
         }
