@@ -19,6 +19,8 @@ struct BuildingType: EntityType, Decodable {
     var width: Int
     var height: Int
     var health: Double
+    var cost: Int
+    var buildTime: Double
     var role: BuildingRole?
     var idle: Animation
     var active: Animation?
@@ -32,11 +34,18 @@ struct BuildingType: EntityType, Decodable {
 
 class Construction {
     var type: EntityType
-    var buildTime: Double = 5
     var elapsedTime: Double
+
+    var buildTime: Double {
+        type.buildTime
+    }
 
     var progress: Double {
         elapsedTime / buildTime
+    }
+
+    var cost: Int {
+        Int(Double(type.cost) * (1 - progress))
     }
 
     init(type: EntityType) {
@@ -201,7 +210,19 @@ extension Building: Entity {
         }
         // Handle construction
         if let construction = construction {
-            construction.elapsedTime += timeStep
+            let previousTime = construction.elapsedTime
+            var cost = construction.cost
+            construction.elapsedTime = min(
+                construction.elapsedTime + timeStep,
+                construction.buildTime
+            )
+            cost -= construction.cost
+            let funds = world.teams[team]?.credits ?? 0
+            guard cost <= funds else {
+                construction.elapsedTime = previousTime
+                return
+            }
+            world.teams[team]?.credits -= cost
             guard construction.progress >= 1 else {
                 return
             }
@@ -251,13 +272,13 @@ extension Building: Entity {
                 unit.path = []
                 let unloadingTimeStep = type.active?.duration ?? 1
                 if elapsedTime >= unloadingTimeStep {
-                    if unit.spice == 0 {
+                    if unit.credits == 0 {
                         world.spawnUnit(unit, from: bounds)
                         self.unit = nil
                     } else {
                         elapsedTime -= unloadingTimeStep
-                        unit.spice -= 1
-                        world.teams[unit.team]?.spice += 100
+                        unit.credits -= 1
+                        world.teams[unit.team]?.credits += 100
                     }
                 }
             case .default:

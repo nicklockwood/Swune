@@ -7,7 +7,7 @@
 
 struct TeamState: Codable {
     var team: Int
-    var spice: Int = 1000
+    var credits: Int = 1000
 }
 
 class World {

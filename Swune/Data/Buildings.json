@@ -5,6 +5,8 @@
         "width": 2,
         "height": 2,
         "health": 5,
+        "cost": 0,
+        "buildTime": 0,
         "idle": {
             "duration": 0,
             "framesByAngle": [
@@ -24,6 +26,8 @@
         "width": 3,
         "height": 2,
         "health": 5,
+        "cost": 600,
+        "buildTime": 5,
         "role": "refinery",
         "unit": "harvester",
         "idle": {
@@ -51,10 +55,12 @@
     },
     {
         "id": "factory",
-        "name": "Vehicle Factory",
+        "name": "Factory",
         "width": 2,
         "height": 2,
         "health": 3,
+        "cost": 400,
+        "buildTime": 5,
         "constructions": [
             "harvester"
         ],
@@ -71,6 +77,8 @@
         "width": 1,
         "height": 1,
         "health": 1,
+        "cost": 5,
+        "buildTime": 1,
         "role": "slab",
         "idle": {
             "duration": 0,
@@ -85,6 +93,8 @@
         "width": 2,
         "height": 2,
         "health": 1,
+        "cost": 20,
+        "buildTime": 3,
         "role": "slab",
         "idle": {
             "duration": 0,

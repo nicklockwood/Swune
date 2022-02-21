@@ -20,6 +20,8 @@ extension EntityTypeID: ExpressibleByStringLiteral {
 protocol EntityType {
     var id: EntityTypeID { get }
     var name: String { get }
+    var cost: Int { get }
+    var buildTime: Double { get }
     var avatarName: String? { get }
 }
 

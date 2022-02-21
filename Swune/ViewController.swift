@@ -51,7 +51,9 @@ class ViewController: UIViewController {
             particleTypes: loadJSON("Particles")
         )
         let level: Level = try! loadJSON("Level1")
+#if targetEnvironment(simulator)
         self.restoreState(with: assets)
+#endif
         if world == nil || world.version != level.version {
             world = .init(level: level, assets: assets)
         }
@@ -335,7 +337,7 @@ class ViewController: UIViewController {
 
         // Draw spice
         if let state = world.teams[playerTeam] {
-            spiceView.text = "$\(state.spice)"
+            spiceView.text = "$\(state.credits)"
             spiceView.sizeToFit()
         }
 
@@ -359,7 +361,7 @@ class ViewController: UIViewController {
                         continue
                     }
                     buildActions.append(UIAction(
-                        title: "Build \(type.name)",
+                        title: "Build \(type.name) ($\(type.cost))",
                         image: type.avatarName.flatMap {
                             UIImage(sprite: $0, team: building.team)
                         }
