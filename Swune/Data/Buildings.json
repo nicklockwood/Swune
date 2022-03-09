@@ -62,7 +62,8 @@
         "cost": 400,
         "buildTime": 5,
         "constructions": [
-            "harvester"
+            "harvester",
+            "trike"
         ],
         "idle": {
             "duration": 0,

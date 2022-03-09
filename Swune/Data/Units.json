@@ -21,5 +21,27 @@
                 ["harvester-nw"]
             ]
         }
+    },
+    {
+        "id": "trike",
+        "name": "Trike",
+        "speed": 4,
+        "turnSpeed": 2,
+        "health": 1,
+        "cost": 100,
+        "buildTime": 3,
+        "idle": {
+            "duration": 0,
+            "framesByAngle": [
+                ["trike-n"],
+                ["trike-ne"],
+                ["trike-e"],
+                ["trike-se"],
+                ["trike-s"],
+                ["trike-sw"],
+                ["trike-w"],
+                ["trike-nw"]
+            ]
+        }
     }
 ]
