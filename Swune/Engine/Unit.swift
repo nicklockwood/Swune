@@ -177,6 +177,10 @@ extension Unit: Entity {
         type.health
     }
 
+    func canAttack(_ target: Entity) -> Bool {
+        role != .harvester && target.team != team
+    }
+
     func update(timeStep: Double, in world: World) {
         elapsedTime += timeStep
         // Handle damage
@@ -194,7 +198,7 @@ extension Unit: Entity {
             }
         }
         // Attack target
-        if let target = world.get(target) {
+        if let target = world.get(target), canAttack(target) {
             if target.health <= 0 {
                 self.target = nil
             } else if distance(from: target) < range {

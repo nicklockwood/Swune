@@ -395,7 +395,7 @@ class ViewController: UIViewController {
         } else if let unit = world.pickUnit(at: coord) {
             if let current = world.selectedEntity as? Unit,
                current.team == playerTeam,
-               unit.team != playerTeam
+               current.canAttack(unit)
             {
                 current.target = unit.id
             }
