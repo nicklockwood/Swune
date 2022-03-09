@@ -17,6 +17,16 @@ struct Angle: RawRepresentable, Hashable, Codable {
         normalize()
     }
 
+    func delta(from direction: Angle) -> Double {
+        var da = direction.radians - radians
+        if da > .pi {
+            da -= .pi * 2
+        } else if da < -.pi {
+            da += .pi * 2
+        }
+        return da
+    }
+
     private mutating func normalize() {
         while radians < 0 {
             radians += .pi * 2

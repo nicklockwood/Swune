@@ -181,6 +181,10 @@ extension Unit: Entity {
         role != .harvester && target.team != team
     }
 
+    func direction(of coord: TileCoord) -> Angle? {
+        Angle(x: Double(coord.x) + 0.5 - x, y: Double(coord.y) + 0.5 - y)
+    }
+
     func update(timeStep: Double, in world: World) {
         elapsedTime += timeStep
         // Handle damage
@@ -198,17 +202,21 @@ extension Unit: Entity {
             }
         }
         // Attack target
+        var targetDirection: Angle?
         if let target = world.get(target), canAttack(target) {
             if target.health <= 0 {
                 self.target = nil
             } else if distance(from: target) < range {
-                path = []
+                path = path.first.map { [$0] } ?? []
+                targetDirection = direction(of: target.nearestCoord(to: coord))
                 // Attack
-                if world.elapsedTime - lastFired > type.attackCooldown ?? 3 {
+                if world.elapsedTime - lastFired > type.attackCooldown ?? 3,
+                   let direction = targetDirection,
+                   angle.delta(from: direction) < 0.1
+                {
                     world.fireProjectile(from: coord, at: target)
                     lastFired = world.elapsedTime
                 }
-                return
             } else if let destination = path.last,
                 target.distance(from: destination) < range {
                     // Carry on moving
@@ -229,30 +237,12 @@ extension Unit: Entity {
                 {
                     return
                 } else {
-                    path = []
+                    path = [coord]
                 }
                 return
             }
 
             let dx = Double(next.x) - x, dy = Double(next.y) - y
-            if let direction = Angle(x: dx, y: dy) {
-                var da = direction.radians - angle.radians
-                if da > .pi {
-                    da -= .pi * 2
-                } else if da < -.pi {
-                    da += .pi * 2
-                }
-                guard abs(da) < 0.001 else {
-                    let astep = timeStep * type.turnSpeed * 2 * .pi
-                    if abs(da) < astep {
-                        angle = direction
-                    } else {
-                        angle.radians += astep * (da < 0 ? -1 : 1)
-                    }
-                    return
-                }
-            }
-
             let distance = (dx * dx + dy * dy).squareRoot()
             let step = timeStep * type.speed
             if distance < step {
@@ -260,8 +250,26 @@ extension Unit: Entity {
                 x = Double(next.x)
                 y = Double(next.y)
             } else {
-                x += (dx / distance) * step
-                y += (dy / distance) * step
+                targetDirection = Angle(x: dx, y: dy)
+                if let direction = targetDirection,
+                   angle.delta(from: direction) < 0.001
+                {
+                    x += (dx / distance) * step
+                    y += (dy / distance) * step
+                }
+            }
+        }
+        // Turn towards target
+        if let direction = targetDirection {
+            let da = angle.delta(from: direction)
+            guard abs(da) < 0.001 else {
+                let astep = timeStep * type.turnSpeed * 2 * .pi
+                if abs(da) < astep {
+                    angle = direction
+                } else {
+                    angle.radians += astep * (da < 0 ? -1 : 1)
+                }
+                return
             }
         }
         // Role-specific logic
