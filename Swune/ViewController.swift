@@ -474,13 +474,17 @@ class ViewController: UIViewController {
         if let building = world.building, building.bounds.contains(coord) {
             _ = world.placeBuilding(building)
         } else if let unit = world.pickUnit(at: coord) {
-            if let current = world.selectedEntity as? Unit,
-               current.team == playerTeam,
-               current.canAttack(unit)
-            {
-                current.target = unit.id
+            if unit === world.selectedEntity {
+                world.selectedEntity = nil
+            } else {
+                if let current = world.selectedEntity as? Unit,
+                   current.team == playerTeam,
+                   current.canAttack(unit)
+                {
+                    current.target = unit.id
+                }
+                world.selectedEntity = unit
             }
-            world.selectedEntity = unit
             updateViews()
         } else if let building = world.pickBuilding(at: coord) {
             if let current = world.selectedEntity as? Unit,
