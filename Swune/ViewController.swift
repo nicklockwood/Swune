@@ -321,6 +321,32 @@ class ViewController: UIViewController {
             i += 1
         }
 
+        // Draw target
+        if let entity = world.selectedEntity {
+            var center: Point?
+            if entity.team == playerTeam, let unit = entity as? Unit {
+                if let target = world.get(unit.target) {
+                    center = target.bounds.center
+                } else if let coord = unit.path.last {
+                    center = coord.center
+                }
+            } else if world.units.contains(where: {
+                $0.team == playerTeam && $0.target == entity.id
+            }) {
+                center = entity.bounds.center
+            }
+            if let center = center {
+                let bounds = Bounds(
+                    x: center.x - 0.5,
+                    y: center.y - 0.5,
+                    width: 1,
+                    height: 1
+                )
+                addSprite("target", team: nil, frame: CGRect(bounds), index: i)
+                i += 1
+            }
+        }
+
         // Clear unused sprites
         for j in i ..< spriteViews.count {
             spriteViews[j].isHidden = true
