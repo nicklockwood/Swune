@@ -191,8 +191,7 @@ extension Building: Entity {
             world.remove(self)
             let coords = bounds.coords
             for (i, coord) in coords.enumerated().shuffled() {
-                let x = Double(coord.x) + 0.5, y = Double(coord.y) + 0.5
-                let explosion = world.emitExplosion(at: x, y)
+                let explosion = world.emitExplosion(at: coord.center)
                 explosion.elapsedTime = -(Double(i) / Double(coords.count)) * 0.5
             }
             construction = nil
@@ -204,7 +203,7 @@ extension Building: Entity {
                 let w = bounds.width / 2, h = bounds.height / 2
                 let x = bounds.x + w + .random(in: -w * 0.75 ... w * 0.75)
                 let y = bounds.y + h + .random(in: -h * 0.75 ... h * 0.5)
-                world.emitSmoke(from: x, y)
+                world.emitSmoke(from: (x, y))
                 lastSmoked = world.elapsedTime
             }
         }

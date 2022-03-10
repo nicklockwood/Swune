@@ -20,8 +20,8 @@ class Projectile {
     init(x: Double, y: Double, target: TileCoord) {
         self.x = x
         self.y = y
-        self.tx = Double(target.x) + 0.5 + .random(in: -0.5 ... 0.5)
-        self.ty = Double(target.y) + 0.5 + .random(in: -0.5 ... 0.5)
+        self.tx = target.center.x + .random(in: -0.5 ... 0.5)
+        self.ty = target.center.y + .random(in: -0.5 ... 0.5)
     }
 
     func update(timeStep: Double, in world: World) {
@@ -40,7 +40,7 @@ class Projectile {
             if world.elapsedTime > lastSmoked + 0.1 {
                 let x = x + .random(in: -0.05 ... 0.05)
                 let y = y + .random(in: -0.05 ... 0.05)
-                let smoke = world.emitSmoke(from: x, y)
+                let smoke = world.emitSmoke(from: (x, y))
                 smoke.dx = .random(in: 0 ... 0.5)
                 smoke.dy = .random(in: -0.5 ... 0)
                 lastSmoked = world.elapsedTime
@@ -91,8 +91,8 @@ extension World {
 
     func fireProjectile(from start: TileCoord, at target: TileCoord) {
         let projectile = Projectile(
-            x: Double(start.x) + 0.5,
-            y: Double(start.y) + 0.5,
+            x: start.center.x,
+            y: start.center.y,
             target: target
         )
         projectiles.append(projectile)

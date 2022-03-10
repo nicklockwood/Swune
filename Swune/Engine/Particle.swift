@@ -113,28 +113,28 @@ extension World {
     }
 
     @discardableResult
-    func emitExplosion(at x: Double, _ y: Double) -> Particle {
+    func emitExplosion(at point: Point) -> Particle {
         let explosion = Particle(
             type: assets.particleTypes[.explosion]!,
-            x: x,
-            y: y
+            x: point.x,
+            y: point.y
         )
         particles.append(explosion)
         for _ in 0 ..< 5 {
-            let x = x + .random(in: -0.5 ... 0.5)
-            let y = y + .random(in: -0.5 ... 0.5)
-            emitSmoke(from: x, y)
+            let x = point.x + .random(in: -0.5 ... 0.5)
+            let y = point.y + .random(in: -0.5 ... 0.5)
+            emitSmoke(from: (x, y))
         }
         screenShake += 3
         return explosion
     }
 
     @discardableResult
-    func emitSmoke(from x: Double, _ y: Double) -> Particle {
+    func emitSmoke(from point: Point) -> Particle {
         let smoke = Particle(
             type: assets.particleTypes[.smoke]!,
-            x: x,
-            y: y,
+            x: point.x,
+            y: point.y,
             dx: 1,
             dy: -1
         )

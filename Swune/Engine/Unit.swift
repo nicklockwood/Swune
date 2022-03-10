@@ -182,7 +182,7 @@ extension Unit: Entity {
     }
 
     func direction(of coord: TileCoord) -> Angle? {
-        Angle(x: Double(coord.x) + 0.5 - x, y: Double(coord.y) + 0.5 - y)
+        Angle(x: Double(coord.x) - x, y: Double(coord.y) - y)
     }
 
     func update(timeStep: Double, in world: World) {
@@ -190,14 +190,14 @@ extension Unit: Entity {
         // Handle damage
         if health <= 0 {
             world.remove(self)
-            world.emitExplosion(at: x + 0.5, y + 0.5)
+            world.emitExplosion(at: (x + 0.5, y + 0.5))
             return
         } else if health < 0.5 * maxHealth {
             let cooldown = health / maxHealth / 2
             if world.elapsedTime - lastSmoked > cooldown {
                 let x = x + 0.5 + .random(in: -0.25 ... 0.25)
                 let y = y + 0.5 + .random(in: -0.25 ... 0)
-                world.emitSmoke(from: x, y)
+                world.emitSmoke(from: (x, y))
                 lastSmoked = world.elapsedTime
             }
         }

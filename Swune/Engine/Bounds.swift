@@ -7,6 +7,8 @@
 
 import Foundation
 
+typealias Point = (x: Double, y: Double)
+
 struct Bounds {
     var x, y, width, height: Double
 
@@ -20,11 +22,15 @@ struct Bounds {
         return coords
     }
 
-    func contains(x: Double, y: Double) -> Bool {
-        x >= self.x && y >= self.y && x < self.x + width && y < self.y + height
+    var center: Point {
+        (x: x + width / 2, y: y + height / 2)
+    }
+
+    func contains(_ p: Point) -> Bool {
+        p.x >= x && p.y >= y && p.x < x + width && p.y < y + height
     }
 
     func contains(_ coord: TileCoord) -> Bool {
-        contains(x: Double(coord.x) + 0.5, y: Double(coord.y) + 0.5)
+        contains(coord.center)
     }
 }
