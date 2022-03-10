@@ -17,6 +17,7 @@ class World {
     private var nextID: Int = 0
     private(set) var assets: Assets
     var map: Tilemap
+    var goal: Goal?
     var elapsedTime: Double
     var screenShake: Double
     var scrollX: Double
@@ -24,6 +25,18 @@ class World {
     var teams: [Int: TeamState]
     var particles: [Particle]
     var projectiles: [Projectile]
+
+    var creditsGoal: Int {
+        goal?.credits ?? 0
+    }
+
+    var destroyAllBuildings: Bool {
+        goal?.destroyAllBuildings ?? (creditsGoal == 0)
+    }
+
+    var destroyAllUnits: Bool {
+        goal?.destroyAllUnits ?? false
+    }
 
     private(set) lazy var tileIsPassable: (TileCoord) -> Bool =
         { [weak self] coord in
@@ -42,6 +55,7 @@ class World {
         self.assets = assets
         self.version = level.version
         self.map = Tilemap(level: level)
+        self.goal = level.goal
         self.elapsedTime = 0
         self.screenShake = 0
         self.scrollX = 0
@@ -123,6 +137,7 @@ class World {
     struct State: Codable {
         var map: Tilemap
         var version: Int
+        var goal: Goal?
         var elapsedTime: Double
         var screenShake: Double
         var scrollX: Double
@@ -139,6 +154,7 @@ class World {
         .init(
             map: map,
             version: version,
+            goal: goal,
             elapsedTime: elapsedTime,
             screenShake: screenShake,
             scrollX: scrollX,
@@ -155,6 +171,7 @@ class World {
     init(state: State, assets: Assets) throws {
         self.assets = assets
         self.version = state.version
+        self.goal = state.goal
         self.map = state.map
         self.elapsedTime = state.elapsedTime
         self.screenShake = state.screenShake

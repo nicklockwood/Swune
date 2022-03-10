@@ -40,6 +40,7 @@ class ViewController: UIViewController {
     private let constructionView = AvatarView()
     private let spiceView = UILabel()
     private var scrollPosition: CGPoint?
+    private var isPaused = true
     private var world: World!
 
     override func viewDidLoad() {
@@ -99,6 +100,34 @@ class ViewController: UIViewController {
         displayLink?.invalidate()
         displayLink = CADisplayLink(target: self, selector: #selector(update))
         displayLink?.add(to: .main, forMode: .common)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        var objectives = [String]()
+        if world.destroyAllBuildings {
+            objectives.append("Destroy all enemy buildings")
+        }
+        if world.destroyAllUnits {
+            objectives.append("Destroy all enemy units")
+        }
+        if world.creditsGoal > 0 {
+            objectives.append("Gather \(world.creditsGoal) credits")
+        }
+        let alert = UIAlertController(
+            title: "Mission:",
+            message: objectives.joined(separator: "\n"),
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            self?.isPaused = false
+        })
+        present(alert, animated: true)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        isPaused = true
     }
 
     func loadTilemap(_ tilemap: Tilemap) {
@@ -161,6 +190,32 @@ class ViewController: UIViewController {
     }
 
     @objc func update(_ displayLink: CADisplayLink) {
+        if isPaused {
+            updateViews()
+            return
+        }
+
+        if !world.destroyAllBuildings || !world.buildings.contains(where: {
+            $0.team != playerTeam
+        }), !world.destroyAllUnits || !world.units.contains(where: {
+            $0.team != playerTeam
+        }), world.teams[playerTeam]?.credits ?? 0 >= world.creditsGoal {
+            let alert = UIAlertController(
+                title: "Mission Complete!",
+                message: nil,
+                preferredStyle: .alert
+            )
+            present(alert, animated: true)
+            alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                let level: Level = try! loadJSON("Level1")
+                self.world = .init(level: level, assets: self.world.assets)
+                self.isPaused = false
+            })
+            isPaused = true
+            return
+        }
+
         let timeStep = min(maximumTimeStep, displayLink.timestamp - lastFrameTime)
         lastFrameTime = displayLink.timestamp
 

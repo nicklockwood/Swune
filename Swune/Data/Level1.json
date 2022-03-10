@@ -1,5 +1,5 @@
 {
-    "version": 2,
+    "version": 1,
     "tiles": [
         "                                ",
         "                                ",
@@ -73,5 +73,9 @@
             "x": 18,
             "y": 18
         },
-    ]
+    ],
+    "goal": {
+        "credits": 1100,
+        "destroyAllBuildings": true
+    }
 }

@@ -7,6 +7,12 @@
 
 import Foundation
 
+struct Goal: Codable {
+    var credits: Int?
+    var destroyAllBuildings: Bool?
+    var destroyAllUnits: Bool?
+}
+
 struct Level: Codable {
     struct Entity: Codable {
         var type: EntityTypeID
@@ -19,4 +25,5 @@ struct Level: Codable {
     var tiles: [String]
     var buildings: [Entity]
     var units: [Entity]
+    var goal: Goal?
 }
