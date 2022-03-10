@@ -342,8 +342,8 @@ class ViewController: UIViewController {
         // Draw placeholder
         if let building = world.building {
             var bounds = building.bounds
-            bounds.x += placeholderDelta.x
-            bounds.y += placeholderDelta.y
+            bounds.x += placeholderDelta.dx
+            bounds.y += placeholderDelta.dy
             placeholderView.frame = CGRect(bounds)
             if world.canPlaceBuilding(building, at: bounds) {
                 placeholderView.backgroundColor = .green.withAlphaComponent(0.5)
@@ -479,7 +479,7 @@ class ViewController: UIViewController {
     }
 
     private var lastDragLocation: CGPoint = .zero
-    private var placeholderDelta: (x: Double, y: Double) = (0, 0)
+    private var placeholderDelta: CGVector = .zero
     @objc private func didDrag(_ gesture: UIPanGestureRecognizer) {
         guard let placeholder = world.building else { return }
         let location = gesture.location(in: scrollView)
@@ -487,12 +487,12 @@ class ViewController: UIViewController {
         case .began:
             lastDragLocation = location
         case .changed:
-            placeholderDelta.x = (location.x - lastDragLocation.x) / tileSize.width
-            placeholderDelta.y = (location.y - lastDragLocation.y) / tileSize.height
+            placeholderDelta.dx = (location.x - lastDragLocation.x) / tileSize.width
+            placeholderDelta.dy = (location.y - lastDragLocation.y) / tileSize.height
         case .ended:
             placeholder.x += Int(round((location.x - lastDragLocation.x) / tileSize.width))
             placeholder.y += Int(round((location.y - lastDragLocation.y) / tileSize.height))
-            placeholderDelta = (0, 0)
+            placeholderDelta = .zero
         case .cancelled, .failed, .possible:
             break
         @unknown default:
