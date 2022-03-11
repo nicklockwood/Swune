@@ -75,7 +75,7 @@ extension World {
             // Try to fire at where unit is going
             let distance = start.distance(from: next)
             let estimatedTime = distance / Projectile.speed
-            let estimatedUnitDistance = estimatedTime * unit.type.speed
+            let estimatedUnitDistance = min(estimatedTime * unit.type.speed, 1)
             let dx = Double(next.x) - unit.x
             let dy = Double(next.y) - unit.y
             let norm = (dx * dx + dy * dy).squareRoot()
