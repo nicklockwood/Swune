@@ -487,17 +487,17 @@ class ViewController: UIViewController {
             }
             updateViews()
         } else if let building = world.pickBuilding(at: coord) {
-            if let current = world.selectedEntity as? Unit,
-               current.team == playerTeam
-            {
-                let coord = TileCoord(x: building.x, y: building.y)
-                if building.team != playerTeam {
+            if building === world.selectedEntity {
+                world.selectedEntity = nil
+            } else {
+                if let current = world.selectedEntity as? Unit,
+                   current.team == playerTeam,
+                   current.canAttack(building) || current.canEnter(building)
+                {
                     current.target = building.id
-                } else if world.unit(current, canMoveTo: coord) {
-                    world.moveUnit(current, to: coord)
                 }
+                world.selectedEntity = building
             }
-            world.selectedEntity = building
             updateViews()
         } else if let unit = world.selectedEntity as? Unit, unit.team == playerTeam {
             world.moveUnit(unit, to: coord)

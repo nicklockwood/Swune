@@ -70,12 +70,10 @@ class Unit {
         self.lastSmoked = -.greatestFiniteMagnitude
     }
 
-    func canEnterBuilding(_ building: Building) -> Bool {
+    func canEnter(_ building: Building) -> Bool {
         switch building.role {
         case .refinery:
-            return role == .harvester &&
-                building.team == team &&
-                building.unit == nil
+            return role == .harvester && building.team == team
         case .slab:
             return true
         case .default:
@@ -203,10 +201,10 @@ extension Unit: Entity {
         }
         // Attack target
         var targetDirection: Angle?
-        if let target = world.get(target), canAttack(target) {
+        if let target = world.get(target) {
             if target.health <= 0 {
                 self.target = nil
-            } else if distance(from: target) < range {
+            } else if canAttack(target), distance(from: target) < range {
                 path = path.first.map { [$0] } ?? []
                 targetDirection = direction(of: target.nearestCoord(to: coord))
                 // Attack
@@ -218,10 +216,11 @@ extension Unit: Entity {
                     lastFired = world.elapsedTime
                 }
             } else if let destination = path.last,
-                target.distance(from: destination) < range {
-                    // Carry on moving
+                target.distance(from: destination) < range
+            {
+                // Carry on moving
             } else if let destination = world.nearestCoord(
-                from: target.bounds,
+                in: target.bounds,
                 to: coord
             ) {
                 // Recalculate path
@@ -276,13 +275,14 @@ extension Unit: Entity {
         switch role {
         case .harvester:
             // Enter refinery
-            if let building = world.pickBuilding(at: coord) {
-                if building.team == team {
-                    building.unit = self
-                    world.remove(self)
-                } else {
-                    assertionFailure()
-                }
+            if let building = world.get(target) as? Building,
+               building.bounds.contains(coord)
+            {
+                assert(building.team == team)
+                assert(building.unit == nil)
+                building.unit = self
+                target = nil
+                world.remove(self)
             }
             guard path.isEmpty else {
                 return
@@ -331,14 +331,7 @@ extension Unit: Entity {
                         distance = d
                     }
                 }
-                if let building = nearest, building.unit == nil {
-                    if let destination = world.nearestCoord(
-                        in: building.bounds,
-                        to: coord
-                    ) {
-                        path = findPath(to: destination, in: world)
-                    }
-                }
+                target = nearest?.id
             }
         case .default:
             break
@@ -406,7 +399,7 @@ extension World {
             }
             return true
         }
-        return unit.canEnterBuilding(building)
+        return unit.canEnter(building) && building.unit == nil
     }
 }
 
