@@ -120,6 +120,23 @@ class World {
         if screenShake < 0.3 {
             screenShake = 0
         }
+        // Update AI
+        let attackRange: Double = 8
+        for (team, _) in teams where team != playerTeam {
+            for unit in units where
+                unit.team == team &&
+                unit.role != .harvester &&
+                unit.target == nil
+            {
+                // Attack units
+                for enemy in units where
+                    enemy.team != team &&
+                    unit.distance(from: enemy) < attackRange
+                {
+                    unit.target = enemy.id
+                }
+            }
+        }
     }
 
     // MARK: Serialization

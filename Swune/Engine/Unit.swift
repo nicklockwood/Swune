@@ -201,10 +201,12 @@ extension Unit: Entity {
         }
         // Attack target
         var targetDirection: Angle?
-        if let target = world.get(target) {
-            if target.health <= 0 {
+        attack: if target != nil {
+            guard let target = world.get(target), target.health > 0 else {
                 self.target = nil
-            } else if canAttack(target), distance(from: target) < range {
+                break attack
+            }
+            if canAttack(target), distance(from: target) < range {
                 path = path.first.map { [$0] } ?? []
                 targetDirection = direction(of: target.nearestCoord(to: coord))
                 // Attack
