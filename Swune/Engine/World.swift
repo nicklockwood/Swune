@@ -5,6 +5,8 @@
 //  Created by Nick Lockwood on 13/02/2022.
 //
 
+let playerTeam = 1
+
 struct TeamState: Codable {
     var team: Int
     var credits: Int = 1000
@@ -25,18 +27,6 @@ class World {
     var teams: [Int: TeamState]
     var particles: [Particle]
     var projectiles: [Projectile]
-
-    var creditsGoal: Int {
-        goal?.credits ?? 0
-    }
-
-    var destroyAllBuildings: Bool {
-        goal?.destroyAllBuildings ?? (creditsGoal == 0)
-    }
-
-    var destroyAllUnits: Bool {
-        goal?.destroyAllUnits ?? false
-    }
 
     private(set) lazy var tileIsPassable: (TileCoord) -> Bool =
         { [weak self] coord in
@@ -291,5 +281,27 @@ extension World: Graph {
 
     func stepDistance(from a: Node, to b: Node) -> Double {
         return 1
+    }
+}
+
+extension World {
+    var creditsGoal: Int {
+        goal?.credits ?? 0
+    }
+
+    var destroyAllBuildings: Bool {
+        goal?.destroyAllBuildings ?? (creditsGoal == 0)
+    }
+
+    var destroyAllUnits: Bool {
+        goal?.destroyAllUnits ?? false
+    }
+
+    var isLevelComplete: Bool {
+        return (!destroyAllBuildings || !buildings.contains(where: {
+            $0.team != playerTeam
+        })) && (!destroyAllUnits || !units.contains(where: {
+            $0.team != playerTeam
+        })) && teams[playerTeam]?.credits ?? 0 >= creditsGoal
     }
 }

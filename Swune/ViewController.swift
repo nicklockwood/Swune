@@ -10,8 +10,7 @@ import UIKit
 private let tileSize = CGSize(width: 48, height: 48)
 private let maximumTimeStep: Double = 1 / 20
 private let worldTimeStep: Double = 1 / 120
-
-let playerTeam = 1
+private let levelEndDelay: Double = 2
 
 func loadJSON<T: Decodable>(_ name: String) throws -> T {
     let url = Bundle.main.url(
@@ -41,6 +40,7 @@ class ViewController: UIViewController {
     private let spiceView = UILabel()
     private var scrollPosition: CGPoint?
     private var isPaused = true
+    private var levelEnded: TimeInterval?
     private var world: World!
 
     override func viewDidLoad() {
@@ -195,27 +195,6 @@ class ViewController: UIViewController {
             return
         }
 
-        if !world.destroyAllBuildings || !world.buildings.contains(where: {
-            $0.team != playerTeam
-        }), !world.destroyAllUnits || !world.units.contains(where: {
-            $0.team != playerTeam
-        }), world.teams[playerTeam]?.credits ?? 0 >= world.creditsGoal {
-            let alert = UIAlertController(
-                title: "Mission Complete!",
-                message: nil,
-                preferredStyle: .alert
-            )
-            present(alert, animated: true)
-            alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-                guard let self = self else { return }
-                let level: Level = try! loadJSON("Level1")
-                self.world = .init(level: level, assets: self.world.assets)
-                self.isPaused = false
-            })
-            isPaused = true
-            return
-        }
-
         let timeStep = min(maximumTimeStep, displayLink.timestamp - lastFrameTime)
         lastFrameTime = displayLink.timestamp
 
@@ -232,6 +211,28 @@ class ViewController: UIViewController {
         } else if view.window?.transform != .identity {
             view.window?.transform = .identity
         }
+
+        if let levelEnded = levelEnded {
+            if lastFrameTime - levelEnded >= levelEndDelay {
+                isPaused = true
+                let alert = UIAlertController(
+                    title: "Mission Complete!",
+                    message: nil,
+                    preferredStyle: .alert
+                )
+                present(alert, animated: true)
+                alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                    guard let self = self else { return }
+                    let level: Level = try! loadJSON("Level1")
+                    self.world = .init(level: level, assets: self.world.assets)
+                    self.levelEnded = nil
+                    self.isPaused = false
+                })
+            }
+        } else if world.isLevelComplete {
+            levelEnded = lastFrameTime
+        }
+
         updateViews()
     }
 
