@@ -37,7 +37,7 @@ class Unit {
     var x, y: Double
     var angle: Angle
     var team: Int
-    var range: Double = 5
+    var attackRange: Double = 5
     var health: Double
     var elapsedTime: Double
     var credits: Int
@@ -46,6 +46,7 @@ class Unit {
     var lastSmoked: Double
     var path: [TileCoord] = []
     var target: EntityID?
+    var onAssignment: Bool = false
 
     var coord: TileCoord {
         TileCoord(x: Int(x + 0.5), y: Int(y + 0.5))
@@ -113,6 +114,7 @@ class Unit {
         var angle: Angle
         var health: Double
         var target: EntityID?
+        var onAssignment: Bool
         var elapsedTime: Double
         var credits: Int
         var isHarvesting: Bool
@@ -130,6 +132,7 @@ class Unit {
             angle: angle,
             health: health,
             target: target,
+            onAssignment: onAssignment,
             elapsedTime: elapsedTime,
             credits: credits,
             isHarvesting: isHarvesting,
@@ -150,6 +153,7 @@ class Unit {
         self.angle = state.angle
         self.health = state.health
         self.target = state.target
+        self.onAssignment = state.onAssignment
         self.elapsedTime = state.elapsedTime
         self.credits = state.credits
         self.isHarvesting = state.isHarvesting
@@ -204,9 +208,10 @@ extension Unit: Entity {
         attack: if target != nil {
             guard let target = world.get(target), target.health > 0 else {
                 self.target = nil
+                self.onAssignment = false
                 break attack
             }
-            if canAttack(target), distance(from: target) < range {
+            if canAttack(target), distance(from: target) < attackRange {
                 path = path.first.map { [$0] } ?? []
                 targetDirection = direction(of: target.nearestCoord(to: coord))
                 // Attack
@@ -217,16 +222,16 @@ extension Unit: Entity {
                     world.fireProjectile(from: coord, at: target)
                     lastFired = world.elapsedTime
                 }
-            } else if let destination = path.last,
-                target.distance(from: destination) < range
-            {
-                // Carry on moving
-            } else if let destination = world.nearestCoord(
-                in: target.bounds,
-                to: coord
-            ) {
-                // Recalculate path
-                path = findPath(to: destination, in: world)
+            } else if onAssignment {
+                if path.isEmpty, let destination = world.nearestCoord(
+                    in: target.bounds,
+                    to: coord
+                ) {
+                    // Recalculate path
+                    path = findPath(to: destination, in: world)
+                }
+            } else {
+                self.target = nil
             }
         }
         // Follow path
@@ -322,21 +327,21 @@ extension Unit: Entity {
                 // Return to refinery
                 isHarvesting = false
                 credits = capacity
-                var nearest: Building?
-                var distance = Double.infinity
-                for building in world.buildings where
-                    building.role == .refinery && building.team == team
-                {
-                    let d = self.distance(from: building)
-                    if d < distance {
-                        nearest = building
-                        distance = d
-                    }
-                }
-                target = nearest?.id
+                target = world.nearestEntity(to: coord, matching: {
+                    $0.team == team && ($0 as? Building)?.role == .refinery
+                })?.id
+                onAssignment = (target != nil)
             }
         case .default:
-            break
+            guard !onAssignment, path.isEmpty else {
+                break
+            }
+            // Attack nearest unit in range
+            target = world.nearestEntity(to: coord, matching: {
+                $0.team != team &&
+                ($0.team == playerTeam || team == playerTeam) &&
+                distance(from: $0) < attackRange
+            })?.id
         }
     }
 }
@@ -357,6 +362,22 @@ extension World {
             return unit
         }
         return nil
+    }
+
+    func nearestEntity(
+        to coord: TileCoord,
+        matching: (Entity) -> Bool
+    ) -> Entity? {
+        var nearest: Entity?
+        var distance = Double.infinity
+        for entity in entities.compactMap({ $0 }) where matching(entity) {
+            let d = entity.distance(from: coord)
+            if d < distance {
+                nearest = entity
+                distance = d
+            }
+        }
+        return nearest
     }
 
     func moveUnit(_ unit: Unit, to coord: TileCoord) {

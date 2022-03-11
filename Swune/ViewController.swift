@@ -483,6 +483,7 @@ class ViewController: UIViewController {
                    current.canAttack(unit)
                 {
                     current.target = unit.id
+                    current.onAssignment = true
                 }
                 world.selectedEntity = unit
             }
@@ -496,6 +497,7 @@ class ViewController: UIViewController {
                    current.canAttack(building) || current.canEnter(building)
                 {
                     current.target = building.id
+                    current.onAssignment = true
                 }
                 world.selectedEntity = building
             }
@@ -503,6 +505,7 @@ class ViewController: UIViewController {
         } else if let unit = world.selectedEntity as? Unit, unit.team == playerTeam {
             world.moveUnit(unit, to: coord)
             unit.target = nil
+            unit.onAssignment = false
         } else {
             world.selectedEntity = nil
             updateViews()

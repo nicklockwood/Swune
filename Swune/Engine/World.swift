@@ -10,6 +10,7 @@ let playerTeam = 1
 struct TeamState: Codable {
     var team: Int
     var credits: Int = 1000
+    var hasFoundPlayer: Bool = false
 }
 
 class World {
@@ -121,21 +122,77 @@ class World {
             screenShake = 0
         }
         // Update AI
-        let attackRange: Double = 8
-        for (team, _) in teams where team != playerTeam {
-            for unit in units where
-                unit.team == team &&
-                unit.role != .harvester &&
-                unit.target == nil
-            {
-                // Attack units
-                for enemy in units where
-                    enemy.team != team &&
-                    unit.distance(from: enemy) < attackRange
+        let sightRange: Double = 10
+        for (team, state) in teams where team != playerTeam {
+            var state = state
+            // Check for attack
+            let buildingUnderAttack = buildings.first(where: { building in
+                building.team == team &&
+                building.health < building.maxHealth &&
+                units.contains(where: {
+                    $0.team != team && $0.target == building.id
+                })
+            })
+            // Update units
+            for unit in units where unit.team == team {
+                // Find player
+                if !state.hasFoundPlayer, buildings.contains(where: {
+                    $0.team == playerTeam &&
+                    unit.distance(from: $0) < sightRange
+                }) {
+                    state.hasFoundPlayer = true
+                }
+                // Run away to nearest building if nearly dead
+                if unit.health <= 0.25 * unit.maxHealth, units.contains(where: {
+                    $0.team == playerTeam && $0.target == unit.id
+                }), unit.path.isEmpty, let building = nearestEntity(
+                    to: unit.coord,
+                    matching: { $0.team == team && $0 is Building }
+                ), let destination = nearestCoord(
+                    from: building.bounds,
+                    to: unit.coord
+                ) {
+                    moveUnit(unit, to: destination)
+                    unit.target = nil
+                    unit.onAssignment = false
+                }
+                // Ignore if busy
+                guard unit.role != .harvester, !unit.onAssignment,
+                      unit.path.isEmpty
+                else {
+                    continue
+                }
+                // Protect base
+                if let building = buildingUnderAttack, let coord = nearestCoord(
+                    from: building.bounds,
+                    to: unit.coord
+                ) {
+                    moveUnit(unit, to: coord)
+                    unit.onAssignment = false
+                    continue
+                }
+                // Attack enemy base
+                if state.hasFoundPlayer, let nearestBuilding = nearestEntity(
+                    to: unit.coord,
+                    matching: { $0.team == playerTeam && $0 is Building })
                 {
-                    unit.target = enemy.id
+                    unit.target = nearestBuilding.id
+                    unit.onAssignment = true
+                }
+                // Attack nearest unit in range
+                if !unit.onAssignment, let target = nearestEntity(
+                    to: unit.coord, matching: {
+                        $0.team != team &&
+                        ($0.team == playerTeam || team == playerTeam) &&
+                        unit.distance(from: $0) < sightRange
+                    }
+                ) {
+                    unit.target = target.id
+                    unit.onAssignment = true
                 }
             }
+            // Update state
+            teams[team] = state
         }
     }
 
