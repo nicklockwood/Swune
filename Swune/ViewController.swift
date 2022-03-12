@@ -601,6 +601,7 @@ extension Tile {
         case .sand: return "sand"
         case .slab: return "slab"
         case .stone: return "stone"
+        case .crater: return "crater"
         case .spice: return "spice"
         case .heavySpice: return "heavy-spice"
         case .boulder: return nil

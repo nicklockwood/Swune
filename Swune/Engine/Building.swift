@@ -191,6 +191,7 @@ extension Building: Entity {
             for (i, coord) in coords.enumerated().shuffled() {
                 let explosion = world.emitExplosion(at: coord.center)
                 explosion.elapsedTime = -(Double(i) / Double(coords.count)) * 0.5
+                world.map.setTile(.crater, at: coord)
             }
             construction = nil
             building = nil
@@ -438,7 +439,7 @@ private extension World {
         case .slab:
             return bounds.coords.contains(where: { coord in
                 switch map.tile(at: coord) {
-                case .stone:
+                case .stone, .crater:
                     return true
                 case .slab, .sand, .spice, .heavySpice, .boulder:
                     return false
@@ -447,7 +448,7 @@ private extension World {
         case .refinery, .default:
             return bounds.coords.allSatisfy { coord in
                 switch map.tile(at: coord) {
-                case .stone, .slab:
+                case .stone, .crater, .slab:
                     return pickEntity(at: coord) == nil
                 case .sand, .spice, .heavySpice, .boulder:
                     return false

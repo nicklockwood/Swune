@@ -27,6 +27,7 @@ enum Tile: Character, Codable {
     case stone = "1"
     case boulder = "3"
     case slab = "4"
+    case crater = "6"
 
     var isPassable: Bool {
         return self != .boulder

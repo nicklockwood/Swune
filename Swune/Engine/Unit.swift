@@ -432,7 +432,7 @@ extension Tile {
         switch self {
         case .spice, .heavySpice:
             return true
-        case .slab, .boulder, .sand, .stone:
+        case .slab, .crater, .boulder, .sand, .stone:
             return false
         }
     }
@@ -445,7 +445,7 @@ extension Tile {
         case .spice:
             self = .sand
             return 1
-        case .slab, .boulder, .sand, .stone:
+        case .slab, .crater, .boulder, .sand, .stone:
             assertionFailure()
             return 0
         }
