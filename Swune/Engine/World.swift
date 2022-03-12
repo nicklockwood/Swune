@@ -195,11 +195,7 @@ class World {
             if let yard = buildings.first(where: {
                 $0.team == team && constructionTypes(for: $0.type)
                     .contains(where: { $0 is BuildingType })
-            }), case let buildingTypes = constructionTypes(
-                for: yard.type
-            ).compactMap({
-                $0 as? BuildingType
-            }), !buildingTypes.isEmpty {
+            }) {
                 if let building = yard.building {
                     // Deploy building
                     _ = placeBuilding(building)
@@ -207,6 +203,8 @@ class World {
                     yard.building = nil
                 }
                 if yard.construction == nil {
+                    let buildingTypes = constructionTypes(for: yard.type)
+                        .compactMap({ $0 as? BuildingType })
                     // Refinery
                     if !buildings.contains(where: {
                         $0.team == team && $0.role == .refinery
@@ -214,6 +212,17 @@ class World {
                         $0.role == .refinery
                     }) {
                         yard.construction = Construction(type: refineryType)
+                    }
+                    // Factory
+                    if !buildings.contains(where: {
+                        $0.team == team && constructionTypes(for: $0.type)
+                            .contains(where: { $0 is UnitType })
+                    }), let factoryType = buildingTypes.first(where: {
+                        constructionTypes(for: $0)
+                            .compactMap({ $0 as? UnitType })
+                            .contains(where: { $0.role != .harvester })
+                    }) {
+                        yard.construction = Construction(type: factoryType)
                     }
                 }
             }
