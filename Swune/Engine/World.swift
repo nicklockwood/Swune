@@ -191,6 +191,30 @@ class World {
                     unit.onAssignment = true
                 }
             }
+            // Build buildings
+            if let yard = buildings.first(where: {
+                $0.team == team && constructionTypes(for: $0.type)
+                    .contains(where: { $0 is BuildingType })
+            }), case let buildingTypes = constructionTypes(
+                for: yard.type
+            ).compactMap({
+                $0 as? BuildingType
+            }), !buildingTypes.isEmpty {
+                if let building = yard.building {
+                    // Deploy building
+                    _ = placeBuilding(building)
+                }
+                if yard.construction == nil {
+                    // Refinery
+                    if !buildings.contains(where: {
+                        $0.team == team && $0.role == .refinery
+                    }), let refineryType = buildingTypes.first(where: {
+                        $0.role == .refinery
+                    }) {
+                        yard.construction = Construction(type: refineryType)
+                    }
+                }
+            }
             // Update state
             teams[team] = state
         }

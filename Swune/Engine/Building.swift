@@ -296,8 +296,10 @@ extension World {
         selectedEntity as? Building
     }
 
-    var building: Building? {
-        selectedBuilding?.building
+    func constructionTypes(for buildingType: BuildingType) -> [EntityType] {
+        (buildingType.constructions ?? []).compactMap {
+            assets.entityType(for: $0)
+        }
     }
 
     func spawnUnit(_ unit: Unit, from bounds: Bounds) {

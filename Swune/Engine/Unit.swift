@@ -289,6 +289,7 @@ extension Unit: Entity {
                 assert(building.unit == nil)
                 building.unit = self
                 target = nil
+                onAssignment = false
                 world.remove(self)
             }
             guard path.isEmpty else {

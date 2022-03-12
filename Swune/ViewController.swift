@@ -367,7 +367,7 @@ class ViewController: UIViewController {
         }
 
         // Draw placeholder
-        if let building = world.building {
+        if let building = world.selectedBuilding?.building {
             var bounds = building.bounds
             bounds.x += placeholderDelta.dx
             bounds.y += placeholderDelta.dy
@@ -472,7 +472,9 @@ class ViewController: UIViewController {
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: scrollView)
         let coord = tileCoordinate(at: location)
-        if let building = world.building, building.bounds.contains(coord) {
+        if let building = world.selectedBuilding?.building,
+           building.bounds.contains(coord)
+        {
             _ = world.placeBuilding(building)
         } else if let unit = world.pickUnit(at: coord) {
             if unit === world.selectedEntity {
@@ -515,7 +517,7 @@ class ViewController: UIViewController {
     private var lastDragLocation: CGPoint = .zero
     private var placeholderDelta: CGVector = .zero
     @objc private func didDrag(_ gesture: UIPanGestureRecognizer) {
-        guard let placeholder = world.building else { return }
+        guard let building = world.selectedBuilding?.building else { return }
         let location = gesture.location(in: scrollView)
         switch gesture.state {
         case .began:
@@ -524,8 +526,8 @@ class ViewController: UIViewController {
             placeholderDelta.dx = (location.x - lastDragLocation.x) / tileSize.width
             placeholderDelta.dy = (location.y - lastDragLocation.y) / tileSize.height
         case .ended:
-            placeholder.x += Int(round((location.x - lastDragLocation.x) / tileSize.width))
-            placeholder.y += Int(round((location.y - lastDragLocation.y) / tileSize.height))
+            building.x += Int(round((location.x - lastDragLocation.x) / tileSize.width))
+            building.y += Int(round((location.y - lastDragLocation.y) / tileSize.height))
             placeholderDelta = .zero
         case .cancelled, .failed, .possible:
             break

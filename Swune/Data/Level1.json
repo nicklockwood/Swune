@@ -1,5 +1,5 @@
 {
-    "version": 6,
+    "version": 1,
     "tiles": [
         "                                ",
         "                                ",
@@ -36,7 +36,7 @@
     ],
     "buildings": [
         {
-            "type": "constructionYard",
+            "type": "yard",
             "team": 1,
             "x": 9,
             "y": 5
@@ -48,7 +48,7 @@
             "y": 27
         },
         {
-            "type": "factory",
+            "type": "yard",
             "team": 2,
             "x": 12,
             "y": 28
