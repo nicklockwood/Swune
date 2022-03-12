@@ -226,6 +226,48 @@ class World {
                     }
                 }
             }
+            // Build vehicles
+            var harvesterCount = 0
+            var vehicleCount = 0
+            for unit in units where unit.team == team {
+                if unit.role == .harvester {
+                    harvesterCount += 1
+                } else {
+                    vehicleCount += 1
+                }
+            }
+            for factory in buildings.filter({
+                $0.team == team && constructionTypes(for: $0.type)
+                    .contains(where: { $0 is UnitType })
+            }) {
+                if let construction = factory.construction {
+                    if let unitType = construction.type as? UnitType {
+                        if unitType.role == .harvester {
+                            harvesterCount += 1
+                        } else {
+                            vehicleCount += 1
+                        }
+                    }
+                    continue
+                }
+                let unitTypes = constructionTypes(for: factory.type)
+                    .compactMap({ $0 as? UnitType })
+                if harvesterCount < 1,
+                   let harvesterType = unitTypes.first(where: {
+                       $0.role == .harvester
+                   })
+                {
+                    // Harvester
+                    factory.construction = Construction(type: harvesterType)
+                } else if vehicleCount < 5,
+                          let vehicleType = unitTypes.first(where: {
+                              $0.role != .harvester
+                          })
+                {
+                    // Combat vehicle
+                    factory.construction = Construction(type: vehicleType)
+                }
+            }
             // Update state
             teams[team] = state
         }
