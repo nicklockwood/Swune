@@ -393,7 +393,8 @@ private extension World {
         let coords = bounds.coords
         var visited = Set(coords)
         var unvisited = coords
-        var possible = [Node]()
+        var buildable = [Node]()
+        var unbuildable = [Node]()
         while let next = unvisited.popLast() {
             visited.insert(next)
             for node in nodesAdjacentTo(next) where !visited.contains(node) {
@@ -405,14 +406,33 @@ private extension World {
                 )
                 if isNextToBuilding(at: bounds, team: building.team) {
                     if isBuildableSpace(at: bounds, for: building.role) {
-                        return node
+                        buildable.append(node)
+                    } else {
+                        unbuildable.append(node)
                     }
                     unvisited.insert(node, at: 0)
-                    possible.append(node)
                 }
             }
         }
-        return possible.first
+        if !buildable.isEmpty {
+            // Select buildable coord with best stone/slab coverage
+            let preferred: Tile = building.role == .slab ? .stone : .slab
+            let coordSlabs: [(coord: TileCoord, slabCount: Int)] = buildable.map {
+                var coords = [TileCoord]()
+                for y in 0 ..< building.type.height {
+                    for x in 0 ..< building.type.width {
+                        coords.append(TileCoord(x: x + $0.x, y: y + $0.y))
+                    }
+                }
+                return ($0, coords.filter {
+                    map.tile(at: $0) == preferred
+                }.count)
+            }
+            return coordSlabs.sorted(by: {
+                $0.slabCount > $1.slabCount
+            }).first?.coord
+        }
+        return unbuildable.first
     }
 
     func isBuildableSpace(at bounds: Bounds, for role: BuildingRole) -> Bool {
