@@ -100,8 +100,6 @@ class Building {
         self.health = type.health
         self.lastSmoked = -.greatestFiniteMagnitude
         self.elapsedTime = 0
-        self.building = nil
-        self.unit = nil
     }
 
     // MARK: Serialization

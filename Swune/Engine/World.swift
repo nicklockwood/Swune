@@ -203,6 +203,8 @@ class World {
                 if let building = yard.building {
                     // Deploy building
                     _ = placeBuilding(building)
+                    yard.construction = nil
+                    yard.building = nil
                 }
                 if yard.construction == nil {
                     // Refinery
