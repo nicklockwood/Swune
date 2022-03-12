@@ -73,16 +73,19 @@ extension World {
     func fireProjectile(from start: TileCoord, at entity: Entity) {
         if let unit = entity as? Unit, let next = unit.path.first {
             // Try to fire at where unit is going
+            var target = unit.coord
             let distance = start.distance(from: next)
             let estimatedTime = distance / Projectile.speed
             let estimatedUnitDistance = min(estimatedTime * unit.type.speed, 1)
             let dx = Double(next.x) - unit.x
             let dy = Double(next.y) - unit.y
             let norm = (dx * dx + dy * dy).squareRoot()
-            let target = TileCoord(
-                x: Int(unit.x + dx / norm * estimatedUnitDistance),
-                y: Int(unit.y + dy / norm * estimatedUnitDistance)
-            )
+            if norm > 0 {
+                target = TileCoord(
+                    x: Int(unit.x + dx / norm * estimatedUnitDistance),
+                    y: Int(unit.y + dy / norm * estimatedUnitDistance)
+                )
+            }
             fireProjectile(from: start, at: target)
         } else {
             fireProjectile(from: start, at: entity.nearestCoord(to: start))
