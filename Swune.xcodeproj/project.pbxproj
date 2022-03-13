@@ -11,9 +11,12 @@
 		010565BF27BFB12D001DAE32 /* Assets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010565BE27BFB12D001DAE32 /* Assets.swift */; };
 		010565C127C2F5A1001DAE32 /* Graphics in Resources */ = {isa = PBXBuildFile; fileRef = 010565C027C2F5A1001DAE32 /* Graphics */; };
 		010565C327C2F5F1001DAE32 /* UIImage+Swune.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010565C227C2F5F1001DAE32 /* UIImage+Swune.swift */; };
+		010EF8C727DE5FBA004FB83C /* TitleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010EF8C627DE5FBA004FB83C /* TitleViewController.swift */; };
+		010EF8C927DE740C004FB83C /* UILabel+Swune.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010EF8C827DE740C004FB83C /* UILabel+Swune.swift */; };
+		010EF8CB27DEAD3E004FB83C /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010EF8CA27DEAD3E004FB83C /* Game.swift */; };
 		017097E027B9932C002ED344 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097DF27B9932C002ED344 /* AppDelegate.swift */; };
 		017097E227B9932C002ED344 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097E127B9932C002ED344 /* SceneDelegate.swift */; };
-		017097E427B9932C002ED344 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097E327B9932C002ED344 /* ViewController.swift */; };
+		017097E427B9932C002ED344 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017097E327B9932C002ED344 /* GameViewController.swift */; };
 		017097E727B9932C002ED344 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 017097E527B9932C002ED344 /* Main.storyboard */; };
 		017097E927B9932E002ED344 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 017097E827B9932E002ED344 /* Assets.xcassets */; };
 		017097EC27B9932E002ED344 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 017097EA27B9932E002ED344 /* LaunchScreen.storyboard */; };
@@ -37,10 +40,13 @@
 		010565BE27BFB12D001DAE32 /* Assets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assets.swift; sourceTree = "<group>"; };
 		010565C027C2F5A1001DAE32 /* Graphics */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Graphics; sourceTree = "<group>"; };
 		010565C227C2F5F1001DAE32 /* UIImage+Swune.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Swune.swift"; sourceTree = "<group>"; };
+		010EF8C627DE5FBA004FB83C /* TitleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleViewController.swift; sourceTree = "<group>"; };
+		010EF8C827DE740C004FB83C /* UILabel+Swune.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UILabel+Swune.swift"; sourceTree = "<group>"; };
+		010EF8CA27DEAD3E004FB83C /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
 		017097DC27B9932C002ED344 /* Swune.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Swune.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		017097DF27B9932C002ED344 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		017097E127B9932C002ED344 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		017097E327B9932C002ED344 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		017097E327B9932C002ED344 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		017097E627B9932C002ED344 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		017097E827B9932E002ED344 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		017097EB27B9932E002ED344 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -95,8 +101,10 @@
 				017097F727B9A0DE002ED344 /* Engine */,
 				017097DF27B9932C002ED344 /* AppDelegate.swift */,
 				017097E127B9932C002ED344 /* SceneDelegate.swift */,
-				017097E327B9932C002ED344 /* ViewController.swift */,
+				010EF8C627DE5FBA004FB83C /* TitleViewController.swift */,
+				017097E327B9932C002ED344 /* GameViewController.swift */,
 				010565C227C2F5F1001DAE32 /* UIImage+Swune.swift */,
+				010EF8C827DE740C004FB83C /* UILabel+Swune.swift */,
 				0170981127BE879F002ED344 /* AvatarView.swift */,
 				017097E527B9932C002ED344 /* Main.storyboard */,
 				017097E827B9932E002ED344 /* Assets.xcassets */,
@@ -122,6 +130,7 @@
 				0170980D27BDBD68002ED344 /* Entity.swift */,
 				017097FD27B9D508002ED344 /* Building.swift */,
 				017097FB27B9D317002ED344 /* Unit.swift */,
+				010EF8CA27DEAD3E004FB83C /* Game.swift */,
 			);
 			path = Engine;
 			sourceTree = "<group>";
@@ -200,19 +209,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				0170980827BD876C002ED344 /* Animation.swift in Sources */,
+				010EF8C927DE740C004FB83C /* UILabel+Swune.swift in Sources */,
 				017097F427B99352002ED344 /* Tilemap.swift in Sources */,
 				010565BD27BF985D001DAE32 /* Bounds.swift in Sources */,
-				017097E427B9932C002ED344 /* ViewController.swift in Sources */,
+				017097E427B9932C002ED344 /* GameViewController.swift in Sources */,
 				0170981027BDD6D3002ED344 /* Particle.swift in Sources */,
 				017097E027B9932C002ED344 /* AppDelegate.swift in Sources */,
 				010565BF27BFB12D001DAE32 /* Assets.swift in Sources */,
 				017097FC27B9D317002ED344 /* Unit.swift in Sources */,
 				017097E227B9932C002ED344 /* SceneDelegate.swift in Sources */,
+				010EF8C727DE5FBA004FB83C /* TitleViewController.swift in Sources */,
 				017097F927B9A0FF002ED344 /* Pathfinder.swift in Sources */,
 				010565C327C2F5F1001DAE32 /* UIImage+Swune.swift in Sources */,
 				0170980C27BDA714002ED344 /* Angle.swift in Sources */,
 				0170980027BC30AB002ED344 /* Projectile.swift in Sources */,
 				017097F627B9995C002ED344 /* World.swift in Sources */,
+				010EF8CB27DEAD3E004FB83C /* Game.swift in Sources */,
 				0170980E27BDBD68002ED344 /* Entity.swift in Sources */,
 				0170981227BE879F002ED344 /* AvatarView.swift in Sources */,
 				0170980427BC613B002ED344 /* Level.swift in Sources */,

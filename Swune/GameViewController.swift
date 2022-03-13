@@ -12,21 +12,7 @@ private let maximumTimeStep: Double = 1 / 20
 private let worldTimeStep: Double = 1 / 120
 private let levelEndDelay: Double = 2
 
-func loadJSON<T: Decodable>(_ name: String) throws -> T {
-    let url = Bundle.main.url(
-        forResource: name,
-        withExtension: "json",
-        subdirectory: "Data"
-    )!
-    let data = try Data(contentsOf: url)
-    return try JSONDecoder().decode(T.self, from: data)
-}
-
-let savedGameURL: URL = FileManager.default
-    .urls(for: .documentDirectory, in: .userDomainMask)[0]
-    .appendingPathComponent("quicksave.json")
-
-class ViewController: UIViewController {
+class GameViewController: UIViewController {
     private var displayLink: CADisplayLink?
     private var lastFrameTime = CACurrentMediaTime()
     private var scrollView = UIScrollView()
@@ -37,33 +23,30 @@ class ViewController: UIViewController {
     private let placeholderView = UIView()
     private let avatarView = AvatarView()
     private let constructionView = AvatarView()
-    private let spiceView = UILabel()
-    private var scrollPosition: CGPoint?
+    private let creditsLabel = UILabel()
+    private let pauseButton = UIButton()
     private var isPaused = true
     private var levelEnded: TimeInterval?
-    private var world: World!
+    private var world: World
+
+    init(world: World) {
+        self.world = world
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let assets = try! Assets(
-            unitTypes: loadJSON("Units"),
-            buildingTypes: loadJSON("Buildings"),
-            particleTypes: loadJSON("Particles")
-        )
-        let level: Level = try! loadJSON("Level1")
-#if targetEnvironment(simulator)
-        self.restoreState(with: assets)
-#endif
-        if world == nil || world.version != level.version {
-            world = .init(level: level, assets: assets)
-        }
         NotificationCenter.default.addObserver(
             forName: UIApplication.willResignActiveNotification,
             object: nil,
             queue: .main
-        ) { _ in
-            self.saveState()
+        ) { [weak self] _ in
+            saveState(self?.world.state)
         }
 
         view.backgroundColor = .black
@@ -81,19 +64,45 @@ class ViewController: UIViewController {
         )
         scrollView.addGestureRecognizer(gesture)
 
-        if let scrollPosition = scrollPosition {
-            scrollView.setContentOffset(scrollPosition, animated: true)
-            self.scrollPosition = nil
-        }
+        let scrollPosition = CGPoint(x: world.scrollX, y: world.scrollY)
+        scrollView.setContentOffset(scrollPosition, animated: true)
 
-        spiceView.font = UIFont.monospacedSystemFont(ofSize: 6, weight: .semibold)
-        spiceView.textColor = .white
-        spiceView.layer.shadowOffset = CGSize(width: 0.4, height: 0.4)
-        spiceView.layer.shadowOpacity = 1
-        spiceView.layer.shadowRadius = 0
-        spiceView.layer.magnificationFilter = .nearest
-        spiceView.transform = CGAffineTransform(scaleX: 8, y: 8)
-        view.addSubview(spiceView)
+        let imageView = UIImageView()
+        imageView.image = UIImage(sprite: "pause", team: nil)
+        imageView.transform = CGAffineTransform(scaleX: 8, y: 8)
+        imageView.contentMode = .scaleToFill
+        imageView.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
+        imageView.layer.magnificationFilter = .nearest
+        imageView.layer.shadowOffset = .zero
+        imageView.layer.shadowOpacity = 0.25
+        imageView.layer.shadowRadius = 0.32
+        pauseButton.addSubview(imageView)
+        pauseButton.sizeToFit()
+        pauseButton.addAction(UIAction { [weak self] _ in
+            self?.isPaused = true
+            let alert = UIAlertController(
+                title: "Paused",
+                message: "",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(
+                title: "Resume",
+                style: .default
+            ) { _ in
+                self?.isPaused = false
+            })
+            alert.addAction(UIAlertAction(
+                title: "Quit",
+                style: .default
+            ) { _ in
+                self?.presentingViewController?.dismiss(animated: true)
+            })
+            self?.present(alert, animated: true)
+        }, for: .touchUpInside)
+        view.addSubview(pauseButton)
+
+        creditsLabel.configure(withSize: 6)
+        view.addSubview(creditsLabel)
 
         loadWorld(world)
 
@@ -223,7 +232,7 @@ class ViewController: UIViewController {
                 present(alert, animated: true)
                 alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
                     guard let self = self else { return }
-                    let level: Level = try! loadJSON("Level1")
+                    let level = loadLevel()
                     self.world = .init(level: level, assets: self.world.assets)
                     self.levelEnded = nil
                     self.isPaused = false
@@ -417,10 +426,10 @@ class ViewController: UIViewController {
             constructionView.isHidden = true
         }
 
-        // Draw spice
+        // Draw credits
         if let state = world.teams[playerTeam] {
-            spiceView.text = "$\(state.credits)"
-            spiceView.sizeToFit()
+            creditsLabel.text = "$\(state.credits)"
+            creditsLabel.sizeToFit()
         }
 
         // Update menu
@@ -546,38 +555,18 @@ class ViewController: UIViewController {
             x: avatarView.frame.minX,
             y: avatarView.frame.maxY + 16
         )
-        spiceView.frame.origin = CGPoint(
+        pauseButton.frame.origin = CGPoint(
             x: view.safeAreaInsets.left + 16,
+            y: avatarView.frame.minY
+        )
+        creditsLabel.frame.origin = CGPoint(
+            x: pauseButton.frame.maxX + 16,
             y: avatarView.frame.minY - 10
         )
     }
-
-    // MARK: Serialization
-
-    func saveState() {
-        do {
-            let data = try JSONEncoder().encode(world.state)
-            try data.write(to: savedGameURL, options: .atomic)
-        } catch {
-            print("\(error)")
-        }
-    }
-
-    func restoreState(with assets: Assets) {
-        if FileManager.default.fileExists(atPath: savedGameURL.path) {
-            do {
-                let data = try Data(contentsOf: savedGameURL)
-                let state = try JSONDecoder().decode(World.State.self, from: data)
-                world = try .init(state: state, assets: assets)
-                scrollPosition = CGPoint(x: world.scrollX, y: world.scrollY)
-            } catch {
-                print("\(error)")
-            }
-        }
-    }
 }
 
-extension ViewController: UIScrollViewDelegate {
+extension GameViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         world.scrollX = scrollView.contentOffset.x
         world.scrollY = scrollView.contentOffset.y
