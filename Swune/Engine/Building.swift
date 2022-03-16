@@ -26,6 +26,7 @@ struct BuildingType: EntityType, Decodable {
     var active: Animation?
     var constructions: [EntityTypeID]?
     var unit: EntityTypeID?
+    var spiceCapacity: Int?
 
     var avatarName: String? {
         idle.frame(angle: .zero, time: 0)
@@ -215,12 +216,12 @@ extension Building: Entity {
                 construction.buildTime
             )
             cost -= construction.cost
-            let funds = world.teams[team]?.credits ?? 0
+            let funds = world.teams[team]?.spice ?? 0
             guard cost <= funds else {
                 construction.elapsedTime = previousTime
                 return
             }
-            world.teams[team]?.credits -= cost
+            world.teams[team]?.spice -= cost
             guard construction.progress >= 1 else {
                 return
             }
@@ -270,13 +271,20 @@ extension Building: Entity {
                 unit.path = []
                 let unloadingTimeStep = type.active?.duration ?? 1
                 if elapsedTime >= unloadingTimeStep {
-                    if unit.credits == 0 {
+                    if unit.spice == 0 {
                         world.spawnUnit(unit, from: bounds)
                         self.unit = nil
                     } else {
                         elapsedTime -= unloadingTimeStep
-                        unit.credits -= 1
-                        world.teams[unit.team]?.credits += 100
+                        let delta = min(unit.spice, 100)
+                        unit.spice -= delta
+                        let capacity = world.spiceCapacity(for: team)
+                        let spice = world.teams[team]?.spice ?? 0
+                        world.teams[team]?.spice = min(spice + delta, capacity)
+                        if spice + delta > capacity {
+                            // TODO: show spice lost warning
+                            unit.spice = 0
+                        }
                     }
                 }
             case .default:

@@ -40,7 +40,7 @@ class Unit {
     var attackRange: Double = 5
     var health: Double
     var elapsedTime: Double
-    var credits: Int
+    var spice: Int
     var isHarvesting: Bool
     var lastFired: Double
     var lastSmoked: Double
@@ -65,7 +65,7 @@ class Unit {
         self.angle = .zero
         self.health = type.health
         self.elapsedTime = 0
-        self.credits = 0
+        self.spice = 0
         self.isHarvesting = false
         self.lastFired = -.greatestFiniteMagnitude
         self.lastSmoked = -.greatestFiniteMagnitude
@@ -116,7 +116,7 @@ class Unit {
         var target: EntityID?
         var onAssignment: Bool
         var elapsedTime: Double
-        var credits: Int
+        var spice: Int
         var isHarvesting: Bool
         var lastFired: Double
         var lastSmoked: Double
@@ -134,7 +134,7 @@ class Unit {
             target: target,
             onAssignment: onAssignment,
             elapsedTime: elapsedTime,
-            credits: credits,
+            spice: spice,
             isHarvesting: isHarvesting,
             lastFired: lastFired,
             lastSmoked: lastSmoked
@@ -155,7 +155,7 @@ class Unit {
         self.target = state.target
         self.onAssignment = state.onAssignment
         self.elapsedTime = state.elapsedTime
-        self.credits = state.credits
+        self.spice = state.spice
         self.isHarvesting = state.isHarvesting
         self.lastFired = state.lastFired
         self.lastSmoked = state.lastSmoked
@@ -295,8 +295,8 @@ extension Unit: Entity {
             guard path.isEmpty else {
                 return
             }
-            let capacity = type.spiceCapacity ?? 5
-            if credits < capacity {
+            let capacity = type.spiceCapacity ?? 500
+            if spice < capacity {
                 if world.map.tile(at: coord).isSpice {
                     // Harvest
                     if !isHarvesting {
@@ -306,7 +306,7 @@ extension Unit: Entity {
                     if elapsedTime >= type.harvestingTime ?? 5 {
                         elapsedTime = 0
                         var tile = world.map.tile(at: coord)
-                        credits += tile.harvest()
+                        spice += tile.harvest()
                         world.map.setTile(tile, at: coord)
                     }
                 } else {
@@ -324,10 +324,10 @@ extension Unit: Entity {
             } else {
                 isHarvesting = false
             }
-            if path.isEmpty, !isHarvesting, credits > 0 {
+            if path.isEmpty, !isHarvesting, spice > 0 {
                 // Return to refinery
                 isHarvesting = false
-                credits = capacity
+                spice = capacity
                 target = world.nearestEntity(to: coord, matching: {
                     $0.team == team && ($0 as? Building)?.role == .refinery
                 })?.id
@@ -441,10 +441,10 @@ extension Tile {
         switch self {
         case .heavySpice:
             self = .spice
-            return 1
+            return 100
         case .spice:
             self = .sand
-            return 1
+            return 100
         case .slab, .crater, .boulder, .sand, .stone:
             assertionFailure()
             return 0

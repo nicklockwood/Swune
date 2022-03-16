@@ -8,7 +8,7 @@
 import Foundation
 
 struct Goal: Codable {
-    var credits: Int?
+    var spice: Int?
     var destroyAllBuildings: Bool?
     var destroyAllUnits: Bool?
 }

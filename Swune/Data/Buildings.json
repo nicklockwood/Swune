@@ -30,6 +30,7 @@
         "buildTime": 5,
         "role": "refinery",
         "unit": "harvester",
+        "spiceCapacity": 1000,
         "idle": {
             "duration": 2,
             "framesByAngle": [[
@@ -51,6 +52,22 @@
                 "refinery-active5",
                 "refinery-active6"
             ]]
+        }
+    },
+    {
+        "id": "silo",
+        "name": "Spice Silo",
+        "width": 2,
+        "height": 2,
+        "health": 3,
+        "cost": 200,
+        "buildTime": 3,
+        "spiceCapacity": 1000,
+        "idle": {
+            "duration": 0,
+            "framesByAngle": [
+                ["silo"]
+            ]
         }
     },
     {

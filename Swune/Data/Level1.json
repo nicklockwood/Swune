@@ -93,7 +93,7 @@
         }
     ],
     "goal": {
-        "credits": 1100,
+        "spice": 1100,
         "destroyAllBuildings": true
     }
 }

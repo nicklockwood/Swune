@@ -9,7 +9,7 @@ let playerTeam = 1
 
 struct TeamState: Codable {
     var team: Int
-    var credits: Int = 1000
+    var spice: Int = 1000
     var hasFoundPlayer: Bool = false
 }
 
@@ -436,12 +436,12 @@ extension World: Graph {
 }
 
 extension World {
-    var creditsGoal: Int {
-        goal?.credits ?? 0
+    var spiceGoal: Int {
+        goal?.spice ?? 0
     }
 
     var destroyAllBuildings: Bool {
-        goal?.destroyAllBuildings ?? (creditsGoal == 0)
+        goal?.destroyAllBuildings ?? (spiceGoal == 0)
     }
 
     var destroyAllUnits: Bool {
@@ -453,6 +453,12 @@ extension World {
             $0.team != playerTeam
         })) && (!destroyAllUnits || !units.contains(where: {
             $0.team != playerTeam
-        })) && teams[playerTeam]?.credits ?? 0 >= creditsGoal
+        })) && teams[playerTeam]?.spice ?? 0 >= spiceGoal
+    }
+
+    func spiceCapacity(for team: Int) -> Int {
+        return buildings.reduce(1000) {
+            $0 + ($1.type.spiceCapacity ?? 0)
+        }
     }
 }

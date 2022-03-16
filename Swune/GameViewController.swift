@@ -23,7 +23,7 @@ class GameViewController: UIViewController {
     private let placeholderView = UIView()
     private let avatarView = AvatarView()
     private let constructionView = AvatarView()
-    private let creditsLabel = UILabel()
+    private let spiceLabel = UILabel()
     private let pauseButton = UIButton()
     private var isPaused = true
     private var levelEnded: TimeInterval?
@@ -101,8 +101,8 @@ class GameViewController: UIViewController {
         }, for: .touchUpInside)
         view.addSubview(pauseButton)
 
-        creditsLabel.configure(withSize: 6)
-        view.addSubview(creditsLabel)
+        spiceLabel.configure(withSize: 6)
+        view.addSubview(spiceLabel)
 
         loadWorld(world)
 
@@ -120,8 +120,8 @@ class GameViewController: UIViewController {
         if world.destroyAllUnits {
             objectives.append("Destroy all enemy units")
         }
-        if world.creditsGoal > 0 {
-            objectives.append("Gather \(world.creditsGoal) credits")
+        if world.spiceGoal > 0 {
+            objectives.append("Gather \(world.spiceGoal) units of spice")
         }
         let alert = UIAlertController(
             title: "Mission:",
@@ -428,8 +428,8 @@ class GameViewController: UIViewController {
 
         // Draw credits
         if let state = world.teams[playerTeam] {
-            creditsLabel.text = "$\(state.credits)"
-            creditsLabel.sizeToFit()
+            spiceLabel.text = "$\(state.spice)"
+            spiceLabel.sizeToFit()
         }
 
         // Update menu
@@ -559,7 +559,7 @@ class GameViewController: UIViewController {
             x: view.safeAreaInsets.left + 16,
             y: avatarView.frame.minY
         )
-        creditsLabel.frame.origin = CGPoint(
+        spiceLabel.frame.origin = CGPoint(
             x: pauseButton.frame.maxX + 16,
             y: avatarView.frame.minY - 10
         )
