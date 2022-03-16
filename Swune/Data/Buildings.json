@@ -68,7 +68,7 @@
         "idle": {
             "duration": 0,
             "framesByAngle": [
-                ["silo"],
+                ["factory"],
             ]
         }
     },
