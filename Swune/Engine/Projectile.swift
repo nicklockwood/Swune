@@ -32,6 +32,9 @@ class Projectile {
             world.emitSmallExplosion(at: x, y)
             if let entity = world.pickEntity(at: TileCoord(x: Int(x), y: Int(y))) {
                 entity.health -= damage
+                if entity.team == playerTeam, entity is Building {
+                    world.postMessage("Base is under attack.")
+                }
             }
             if let index = world.projectiles.firstIndex(where: { $0 === self }) {
                 world.projectiles.remove(at: index)

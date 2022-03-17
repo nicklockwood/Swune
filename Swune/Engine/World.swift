@@ -19,6 +19,7 @@ class World {
     private var indexByID: [EntityID: Int] = [:]
     private var nextID: Int = 0
     private(set) var assets: Assets
+    private(set) var message: String?
     var map: Tilemap
     var goal: Goal?
     var elapsedTime: Double
@@ -39,7 +40,12 @@ class World {
     private var selectedEntityID: EntityID?
     var selectedEntity: Entity? {
         get { get(selectedEntityID) }
-        set { selectedEntityID = newValue?.id }
+        set {
+            if newValue != nil {
+                message = nil
+            }
+            selectedEntityID = newValue?.id
+        }
     }
 
     init(level: Level, assets: Assets) {
@@ -100,6 +106,10 @@ class World {
         nodesAdjacentTo(start).min(by: {
             $0.distance(from: end) < $1.distance(from: end)
         })
+    }
+
+    func postMessage(_ message: String?) {
+        self.message = message
     }
 
     func update(timeStep: Double) {
@@ -438,6 +448,10 @@ extension World: Graph {
 extension World {
     var spiceGoal: Int {
         goal?.spice ?? 0
+    }
+
+    var selectedEntityDescription: String? {
+        selectedEntity.flatMap(description(for:))
     }
 
     var destroyAllBuildings: Bool {

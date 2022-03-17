@@ -24,6 +24,7 @@ class GameViewController: UIViewController {
     private let avatarView = AvatarView()
     private let constructionView = AvatarView()
     private let spiceLabel = UILabel()
+    private let messageLabel = UILabel()
     private let pauseButton = UIButton()
     private var isPaused = true
     private var levelEnded: TimeInterval?
@@ -103,6 +104,10 @@ class GameViewController: UIViewController {
 
         spiceLabel.configure(withSize: 6)
         view.addSubview(spiceLabel)
+
+        messageLabel.configure(withSize: 4)
+        messageLabel.numberOfLines = 0
+        view.addSubview(messageLabel)
 
         loadWorld(world)
 
@@ -432,6 +437,22 @@ class GameViewController: UIViewController {
             spiceLabel.sizeToFit()
         }
 
+        // Draw message
+        
+        messageLabel.text = world.message ?? world.selectedEntityDescription
+        if !avatarView.isHidden {
+            messageLabel.frame.size = CGSize(
+                width: avatarView.frame.minX - messageLabel.frame.minX - 16,
+                height: 100
+            )
+        } else {
+            messageLabel.frame.size = CGSize(
+                width: view.bounds.width  - messageLabel.frame.minX - 16,
+                height: 100
+            )
+        }
+        messageLabel.sizeToFit()
+
         // Update menu
         if let building = world.selectedBuilding {
             if building.team != playerTeam {
@@ -562,6 +583,10 @@ class GameViewController: UIViewController {
         spiceLabel.frame.origin = CGPoint(
             x: pauseButton.frame.maxX + 16,
             y: avatarView.frame.minY - 10
+        )
+        messageLabel.frame.origin = CGPoint(
+            x: pauseButton.frame.minX,
+            y: spiceLabel.frame.maxY + 4
         )
     }
 }

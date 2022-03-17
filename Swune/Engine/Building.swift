@@ -196,6 +196,11 @@ extension Building: Entity {
             }
             construction = nil
             building = nil
+            world.postMessage(
+                team == playerTeam ?
+                    "\(type.name) destroyed." :
+                    "Enemy building destroyed."
+            )
             return
         } else if health < 0.5 * maxHealth {
             let cooldown = health / maxHealth / 2
@@ -282,7 +287,7 @@ extension Building: Entity {
                         let spice = world.teams[team]?.spice ?? 0
                         world.teams[team]?.spice = min(spice + delta, capacity)
                         if spice + delta > capacity {
-                            // TODO: show spice lost warning
+                            world.postMessage("Spice lost. Build silo.")
                             unit.spice = 0
                         }
                     }

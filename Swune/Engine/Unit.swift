@@ -56,6 +56,10 @@ class Unit {
         type.role ?? .default
     }
 
+    var spiceCapacity: Int {
+        type.spiceCapacity ?? (role == .harvester ? 500 : 0)
+    }
+
     init(id: EntityID, type: UnitType, team: Int, coord: TileCoord?) {
         self.id = id
         self.type = type
@@ -193,6 +197,9 @@ extension Unit: Entity {
         if health <= 0 {
             world.remove(self)
             world.emitExplosion(at: (x + 0.5, y + 0.5))
+            world.postMessage(
+                team == playerTeam ? "Unit destroyed." : "Enemy unit destroyed."
+            )
             return
         } else if health < 0.5 * maxHealth {
             let cooldown = health / maxHealth / 2
@@ -295,8 +302,7 @@ extension Unit: Entity {
             guard path.isEmpty else {
                 return
             }
-            let capacity = type.spiceCapacity ?? 500
-            if spice < capacity {
+            if spice < spiceCapacity {
                 if world.map.tile(at: coord).isSpice {
                     // Harvest
                     if !isHarvesting {
@@ -327,7 +333,7 @@ extension Unit: Entity {
             if path.isEmpty, !isHarvesting, spice > 0 {
                 // Return to refinery
                 isHarvesting = false
-                spice = capacity
+                spice = spiceCapacity
                 target = world.nearestEntity(to: coord, matching: {
                     $0.team == team && ($0 as? Building)?.role == .refinery
                 })?.id

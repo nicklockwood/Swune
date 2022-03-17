@@ -55,3 +55,27 @@ extension Entity {
         entity.bounds.coords.map { distance(from: $0) }.min() ?? .infinity
     }
 }
+
+extension World {
+    func description(for entity: Entity) -> String? {
+        switch entity {
+        case let building as Building:
+            guard let capacity = building.type.spiceCapacity else {
+                return building.type.name
+            }
+            let totalSpice = teams[building.team]?.spice ?? 0
+            let totalCapacity = spiceCapacity(for: building.team)
+            let spice = Int(Double(capacity) * (
+                Double(totalSpice) / Double(totalCapacity)
+            ))
+            return "\(building.type.name) (\(spice) / \(capacity))"
+        case let unit as Unit:
+            guard unit.spiceCapacity > 0 else {
+                return unit.type.name
+            }
+            return "\(unit.type.name) (\(unit.spice) / \(unit.spiceCapacity))"
+        default:
+            return nil
+        }
+    }
+}
