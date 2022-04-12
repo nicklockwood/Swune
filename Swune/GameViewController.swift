@@ -487,8 +487,6 @@ class GameViewController: UIViewController {
                     avatarView.menu = UIMenu(children: buildActions)
                 }
             }
-        } else if let unit = world.selectedUnit {
-            avatarView.menu = nil
         }
     }
 
